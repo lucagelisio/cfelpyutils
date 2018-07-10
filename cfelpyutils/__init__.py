@@ -27,7 +27,7 @@ some functions from the CrystFEL software package.
 The 'geometry_utils' submodule contains the implementation of functions
 used to manipulate detector geometry information.
 
-This 'parameter_utils' module contains the implementation of functions
+The 'parameter_utils' module contains the implementation of functions
 that are used to parse and manipulate options and parameters.
 """
-__version__ = 0.9
+__version__ = "0.9"+
