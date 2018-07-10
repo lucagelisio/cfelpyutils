@@ -35,4 +35,4 @@ Installation Methods
 Documentation
 -------------
 
-The API documentation can be found on Read The Docs
+The API documentation can be found on [Read The Docs](https://cfelpyutils.readthedocs.io/en/latest)

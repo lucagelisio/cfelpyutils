@@ -6,6 +6,11 @@
 Welcome to cfelpyutils's documentation!
 =======================================
 
+CfelPyUtils is a library of several utility functions and
+classes used by several software projects developed at the
+Center For Free Electron Laser Science (CFEL) in Hamburg.
+
+
 .. toctree::
    :maxdepth: 4
    :caption: Contents:
