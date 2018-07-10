@@ -15,9 +15,9 @@
 """
 Parameter parsing utilities.
 
-This 'parameter_utils' module contains the implementation of functions
-that are used to parse and manipulate options and parameters, as
-extracted by the python :obj:`configparse` module.
+This module contains the implementation of functions that are used to
+parse and manipulate options and parameters, as extracted by the
+python :obj:`configparse` module.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -82,7 +82,7 @@ def convert_parameters(config_dict):
     Raises:
 
         RuntimeError: if an entry cannot be converted to any supported
-        type.
+            type.
     """
 
     monitor_params = {}

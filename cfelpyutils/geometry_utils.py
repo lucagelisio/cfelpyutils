@@ -31,12 +31,11 @@ PixelMaps = collections.namedtuple(  # pylint: disable=C0103
     field_names=['x', 'y', 'r']
 )
 """
-Pixel maps storing data geometry.
+Pixel maps storing geometry information.
 
-A namedtuple that stores the pixel maps describing the geometry of a
-dataset. The first two fields, named "x" and "y" respectively, store
-the pixel maps for the x coordinate and the y coordinate. The third
-field, named "r", is instead a pixel map storing the distance of each
+The first two fields, named "x" and "y" respectively, store the pixel
+maps for the x coordinate and the y coordinate. The third field,
+named "r", is instead a pixel map storing the distance of each
 pixel in the data array from the center of the reference system.
 """
 
@@ -47,21 +46,21 @@ def compute_pix_maps(geometry):
 
     Take as input a CrystFEL-style geometry object (A dictionary
     returned by the function load_crystfel_geometry function in the
-    crystfel_utils module) and return a PixelMap tuple . The origin the
-    reference system used by the pixel maps is set at the beam
-    interaction point.
+    crystfel_utils module) and return a :obj:`PixelMaps` tuple . The
+    origin the reference system used by the pixel maps is set at the
+    beam interaction point.
 
     Args:
 
-        geometry (dict): A CrystFEL geometry object (A dictionary
+        geometry (Dict): A CrystFEL geometry object (A dictionary
             returned by the
             :obj:`cfelpyutils.crystfel_utils.load_crystfel_geometry`
             function).
 
     Returns:
 
-        PixelMaps: A PixelMaps tuple storing the pixel maps (ndarrays
-        of type float).
+        PixelMaps: A :obj:`PixelMaps` tuple storing the pixel maps
+        (numpy.ndarrays of float).
     """
     max_fs_in_slab = numpy.array([
         geometry['panels'][k]['max_fs']
@@ -134,7 +133,7 @@ def compute_pix_maps(geometry):
 
 def compute_min_array_size(pixel_maps):
     """
-    Compute the minimum array size storing data with applied geometry.
+    Compute the minimum size of an array stroing the applied geometry.
 
     Return the minimum size of an array that can store data on which
     the geometry information described by the pixel maps has been
@@ -147,7 +146,7 @@ def compute_min_array_size(pixel_maps):
 
     Args:
 
-        pixel_maps [PixelMaps]: a PixelMaps tuple.
+        pixel_maps (PixelMaps): a :obj:`PixelMaps` tuple.
 
     Returns:
 
@@ -182,10 +181,10 @@ def compute_visualization_pix_maps(geometry):
     Returns:
 
         PixelMaps: A PixelMaps tuple containing the adjusted pixel
-            maps. The first two fields, named "x" and "y" respectively,
-            store the pixel maps for the x coordinate and the y
-            coordinates (as ndarrays of type int). The third field
-            ("r") is just set to None.
+        maps. The first two fields, named "x" and "y" respectively,
+        store the pixel maps for the x coordinate and the y
+        coordinates (as ndarrays of type int). The third field
+        ("r") is just set to None.
     """
     # Shift the origin of the reference system from the beam position
     # to the top-left of the image that will be displayed. Compute the

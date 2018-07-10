@@ -16,8 +16,8 @@
 CryystFEL utilities.
 
 This module contains the python implementation of some functions from
-the CrystFEL software package.
-(`Link CrystFEL http://www.desy.de/~twhite/crystfel/`)
+the
+`CrystFEL software package <http://www.desy.de/~twhite/crystfel/>`_.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -397,13 +397,11 @@ def load_crystfel_geometry(filename):
     CrystFEL in python. Return a dictionary with the geometry
     information read from the file. Convert entries in the geometry
     file to keys in the returned dictionary. For a full documentation
-    on the CrystFEL geometry format, see:
-
-    http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html
-
-    The code of this function is synced with the code of the function
-    'get_detector_geometry_2' in CrystFEL at commit
-    41a8fa9819010fe8ddeb66676fee717f5226c7b8.
+    of the CrystFEL geometry format, see `CrystFEL's geometry man page
+    <http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.
+    html>`_. The code of this function is synced with the code of the
+    function 'get_detector_geometry_2' in CrystFEL at commit
+    41a8fa9819010.
 
     Args:
 

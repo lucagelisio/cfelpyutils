@@ -13,11 +13,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with cfelpyutils.  If not, see <http://www.gnu.org/licenses/>.
 """
-Utilities for CFEL software projects.
+Utility functions and classes for CFEL software projects.
 
-This package contains the implementation of several utiliy functions
-and classes used by many projects developed at the Center For Free
-Electron Laser Science (CFEL) in Hamburg.
+This package contains the implementation of several utility functions
+and classes used by many software projects developed at the Center For
+Free Electron Laser Science (CFEL) in Hamburg.
 (`Link CFEL: https://www.cfel.de`)
 
 The 'crystfel_utils' submodule contains the python implementation of
@@ -30,3 +30,4 @@ used to manipulate detector geometry information.
 This 'parameter_utils' module contains the implementation of functions
 that are used to parse and manipulate options and parameters.
 """
+__version__ = 0.9
