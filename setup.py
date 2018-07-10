@@ -39,7 +39,7 @@ setup(
         """
     ),
     install_requires=['numpy'],
-    packages=['cfelpytutils'],
+    packages=['cfelpyutils'],
     include_package_data=True,
     platforms='any',
     classifiers=[
