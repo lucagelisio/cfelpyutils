@@ -16,7 +16,8 @@
 Geometry utilities.
 
 This module contains the implementation of several functions used to
-manipulate geometry information."""
+manipulate geometry information.
+"""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -173,7 +174,7 @@ def compute_visualization_pix_maps(geometry):
 
     Args:
 
-        geometry (dict): A CrystFEL geometry object (A dictionary
+        geometry (Dict): A CrystFEL geometry object (A dictionary
             returned by the
             :obj:`cfelpyutils.crystfel_utils.load_crystfel_geometry`
             function).

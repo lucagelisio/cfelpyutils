@@ -20,13 +20,13 @@ and classes used by many projects developed at the Center For Free
 Electron Laser Science (CFEL) in Hamburg.
 (`Link CFEL: https://www.cfel.de`)
 
-The 'crystfel_utils' submodule contains python implementations of
+The 'crystfel_utils' submodule contains the python implementation of
 some functions from the CrystFEL software package.
 (`Link CrystFEL http://www.desy.de/~twhite/crystfel/`)
 
 The 'geometry_utils' submodule contains the implementation of functions
 used to manipulate detector geometry information.
 
-The 'parameter utils' submodule contains the implementation of
-functions used to manipulate detector geometry information.
+This 'parameter_utils' module contains the implementation of functions
+that are used to parse and manipulate options and parameters.
 """

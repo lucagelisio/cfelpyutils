@@ -15,8 +15,9 @@
 """
 Parameter parsing utilities.
 
-This module contains the implementation of several utilities used
-to parse and manipulate dictionaries that store options and parameters.
+This 'parameter_utils' module contains the implementation of functions
+that are used to parse and manipulate options and parameters, as
+extracted by the python :obj:`configparse` module.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -38,9 +39,9 @@ def convert_parameters(config_dict):
     """
     Convert strings in parameter dictionaries to the correct data type.
 
-    Convert a dictionary return by the configparse module to a
-    dictionar contaning the same parameters converted from string to
-    their correct type (int, float, string, etc.)
+    Convert a dictionary extracted by the configparse module to a
+    dictionary contaning the same parameters converted from strings to
+    correct types (int, float, string, etc.)
 
     Try to convert each entry in the dictionary according to the
     following rules. The first rule that applies to the entry
@@ -69,8 +70,9 @@ def convert_parameters(config_dict):
 
     Args:
 
-        config (Dict): a dictionary containing strings (the dictionary
-            returned by Config Parser).
+        config (Dict[str]): a dictionary containing the parameters from
+            a configuration file as extracted by the
+            :obj:`configparser` module).
 
     Returns:
 

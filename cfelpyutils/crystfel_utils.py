@@ -15,8 +15,9 @@
 """
 CryystFEL utilities.
 
-This module contains the implementation of several functions used to
-interact with CrystFEL files and data (geometry files, stream files).
+This module contains the python implementation of some functions from
+the CrystFEL software package.
+(`Link CrystFEL http://www.desy.de/~twhite/crystfel/`)
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
