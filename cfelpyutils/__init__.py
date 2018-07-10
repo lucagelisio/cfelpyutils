@@ -30,4 +30,4 @@ used to manipulate detector geometry information.
 The 'parameter_utils' module contains the implementation of functions
 that are used to parse and manipulate options and parameters.
 """
-__version__ = "0.9"+
+__version__ = "0.9"
