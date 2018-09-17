@@ -28,15 +28,18 @@ import numpy
 
 PixelMaps = collections.namedtuple(  # pylint: disable=C0103
     typename='PixelMaps',
-    field_names=['x', 'y', 'r']
+    field_names=['x', 'y', 'z', 'r', 'phi']
 )
 """
 Pixel maps storing geometry information.
 
-The first two fields, named "x" and "y" respectively, store the pixel
-maps for the x coordinate and the y coordinate. The third field,
-named "r", is instead a pixel map storing the distance of each
-pixel in the data array from the center of the reference system.
+The first three fields, named "x" "y" and "z" respectively, store the
+pixel maps for the x,the y and the z coordinates. The fourth field,
+named "r", is a pixel map storing the distance of each pixel in the
+data array from the center of the reference system. The fifth field,
+'phi', is instead a pixel map that stores the angles that vectors
+connecting each pixel with the center of the reference system make with
+respect to the x axis of the reference system.
 """
 
 
@@ -82,10 +85,21 @@ def compute_pix_maps(geometry):
         dtype=numpy.float32  # pylint: disable=E1101
     )
 
+    z_map = numpy.zeros(
+        shape=(max_ss_in_slab + 1, max_fs_in_slab + 1),
+        dtype=numpy.float32  # pylint: disable=E1101
+    )
+
     # Iterate over the panels. For each panel, determine the pixel
     # indices, then compute the x,y vectors. Finally, copy the
     # panel pixel maps into the detector-wide pixel maps.
     for pan in geometry['panels']:
+
+        if 'clen' in geometry['panels'][pan]:
+            pan_clen = geometry['panels'][pan]['clen']
+        else:
+            pan_clen = 0.0
+
         ss_grid, fs_grid = numpy.meshgrid(
             numpy.arange(
                 geometry['panels'][pan]['max_ss'] -
@@ -126,9 +140,17 @@ def compute_pix_maps(geometry):
             geometry['panels'][pan]['max_fs'] + 1
         ] = y_panel
 
-    r_map = numpy.sqrt(numpy.square(x_map) + numpy.square(y_map))
+        z_map[
+            geometry['panels'][pan]['min_ss']:
+            geometry['panels'][pan]['max_ss'] + 1,
+            geometry['panels'][pan]['min_fs']:
+            geometry['panels'][pan]['max_fs'] + 1
+        ] = pan_clen
 
-    return PixelMaps(x_map, y_map, r_map)
+    r_map = numpy.sqrt(numpy.square(x_map) + numpy.square(y_map))
+    phi_map = numpy.arctan2(y_map, x_map)
+
+    return PixelMaps(x_map, y_map, z_map, r_map, phi_map)
 
 
 def compute_min_array_size(pixel_maps):
