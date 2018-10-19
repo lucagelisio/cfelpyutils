@@ -447,7 +447,7 @@ def load_crystfel_geometry(filename):
         'clen_for_centering': None,
         'adu_per_eV': None,
         'adu_per_photon': None,
-        'max_adu': float(x='inf'),
+        'max_adu': float('inf'),
         'mask': None,
         'mask_file': None,
         'satmap': None,
