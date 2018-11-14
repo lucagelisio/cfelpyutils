@@ -582,38 +582,54 @@ def load_crystfel_geometry(filename):
         if panel['dim_structure'] is None:
             panel['dim_structure'] = copy.deepcopy(default_dim)
 
-        found_ss = False
-        found_fs = False
-        found_placeholder = False
-        for entry in panel['dim_structure']:
+        found_ss = 0
+        found_fs = 0
+        found_placeholder = 0
+        for dim_index, entry in enumerate(panel['dim_structure']):
             if entry is None:
                 raise RuntimeError(
-                    "Not all dim entries are defined for all panels."
+                    "Dimension {} for panel {} is undefined.".format(
+                        dim_index,
+                        panel['name']
+                    )
                 )
 
             elif entry == 'ss':
-                if found_ss is True:
+                if found_ss != 1:
                     raise RuntimeError(
-                        "Only one slow scan dim coordinate is allowed."
+                        "Exactly one slow scan dim coordinate is needed "
+                        "(found {} for panel {})".format(
+                            found_ss,
+                            panel['name']
+                        )
                     )
                 else:
-                    found_ss = True
+                    found_ss += 1
 
             elif entry == 'fs':
-                if found_fs is True:
+                if found_fs != 1:
                     raise RuntimeError(
-                        "Only one fast scan dim coordinate is allowed."
+                        "Exactly one fast scan dim coordinate is needed "
+                        "(found {} for panel {})".format(
+                            found_fs,
+                            panel['name']
+                        )
                     )
                 else:
-                    found_fs = True
+                    found_fs += 1
 
             elif entry == '%':
-                if found_placeholder is True:
+                if found_placeholder != 1:
                     raise RuntimeError(
                         "Only one placeholder dim coordinate is allowed."
+                        "Maximum one placeholder dim coordinate is "
+                        "allowed (found {} for panel {})".format(
+                            found_placeholder,
+                            panel['name']
+                        )
                     )
                 else:
-                    found_placeholder = True
+                    found_placeholder += 1
 
         if dim_length is None:
             dim_length = len(panel['dim_structure'])
@@ -730,6 +746,6 @@ def load_crystfel_geometry(filename):
 
     # The code of this function is synced with the code of the function
     # 'get_detector_geometry_2' in CrystFEL at commit
-    # 41a8fa9819010fe8ddeb66676fee717f5226c7b8
+    # 92f2ebfd11d0ccd91ab299f95ffb2d99a457643d
 
     return detector
