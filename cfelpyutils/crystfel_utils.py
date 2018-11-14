@@ -229,13 +229,13 @@ def _parse_toplevel(key, value, detector, beam, panel):
         try:
             detector['mask_bad'] = int(value)
         except ValueError:
-            detector['mask_bad'] = int(x=value, base=16)
+            detector['mask_bad'] = int(value, base=16)
 
     elif key == 'mask_good':
         try:
             detector['mask_good'] = int(value)
         except ValueError:
-            detector['mask_good'] = int(x=value, base=16)
+            detector['mask_good'] = int(value, base=16)
 
     elif key == 'coffset':
         panel['coffset'] = float(value)
@@ -447,7 +447,7 @@ def load_crystfel_geometry(filename):
         'clen_for_centering': None,
         'adu_per_eV': None,
         'adu_per_photon': None,
-        'max_adu': float(x='inf'),
+        'max_adu': float('inf'),
         'mask': None,
         'mask_file': None,
         'satmap': None,
