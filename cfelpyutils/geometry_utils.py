@@ -16,7 +16,8 @@
 Geometry utilities.
 
 This module contains the implementation of several functions used to
-manipulate geometry information."""
+manipulate geometry information.
+"""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -27,16 +28,18 @@ import numpy
 
 PixelMaps = collections.namedtuple(  # pylint: disable=C0103
     typename='PixelMaps',
-    field_names=['x', 'y', 'r']
+    field_names=['x', 'y', 'z', 'r', 'phi']
 )
 """
-Pixel maps storing data geometry.
+Pixel maps storing geometry information.
 
-A namedtuple that stores the pixel maps describing the geometry of a
-dataset. The first two fields, named "x" and "y" respectively, store
-the pixel maps for the x coordinate and the y coordinate. The third
-field, named "r", is instead a pixel map storing the distance of each
-pixel in the data array from the center of the reference system.
+The first three fields, named "x" "y" and "z" respectively, store the
+pixel maps for the x,the y and the z coordinates. The fourth field,
+named "r", is a pixel map storing the distance of each pixel in the
+data array from the center of the reference system. The fifth field,
+'phi', is instead a pixel map that stores the angles that vectors
+connecting each pixel with the center of the reference system make with
+respect to the x axis of the reference system.
 """
 
 
@@ -46,21 +49,21 @@ def compute_pix_maps(geometry):
 
     Take as input a CrystFEL-style geometry object (A dictionary
     returned by the function load_crystfel_geometry function in the
-    crystfel_utils module) and return a PixelMap tuple . The origin the
-    reference system used by the pixel maps is set at the beam
-    interaction point.
+    crystfel_utils module) and return a :obj:`PixelMaps` tuple . The
+    origin the reference system used by the pixel maps is set at the
+    beam interaction point.
 
     Args:
 
-        geometry (dict): A CrystFEL geometry object (A dictionary
+        geometry (Dict): A CrystFEL geometry object (A dictionary
             returned by the
             :obj:`cfelpyutils.crystfel_utils.load_crystfel_geometry`
             function).
 
     Returns:
 
-        PixelMaps: A PixelMaps tuple storing the pixel maps (ndarrays
-        of type float).
+        PixelMaps: A :obj:`PixelMaps` tuple storing the pixel maps
+        (numpy.ndarrays of float).
     """
     max_fs_in_slab = numpy.array([
         geometry['panels'][k]['max_fs']
@@ -82,10 +85,21 @@ def compute_pix_maps(geometry):
         dtype=numpy.float32  # pylint: disable=E1101
     )
 
+    z_map = numpy.zeros(
+        shape=(max_ss_in_slab + 1, max_fs_in_slab + 1),
+        dtype=numpy.float32  # pylint: disable=E1101
+    )
+
     # Iterate over the panels. For each panel, determine the pixel
     # indices, then compute the x,y vectors. Finally, copy the
     # panel pixel maps into the detector-wide pixel maps.
     for pan in geometry['panels']:
+
+        if 'clen' in geometry['panels'][pan]:
+            pan_clen = geometry['panels'][pan]['clen']
+        else:
+            pan_clen = 0.0
+
         ss_grid, fs_grid = numpy.meshgrid(
             numpy.arange(
                 geometry['panels'][pan]['max_ss'] -
@@ -126,14 +140,22 @@ def compute_pix_maps(geometry):
             geometry['panels'][pan]['max_fs'] + 1
         ] = y_panel
 
-    r_map = numpy.sqrt(numpy.square(x_map) + numpy.square(y_map))
+        z_map[
+            geometry['panels'][pan]['min_ss']:
+            geometry['panels'][pan]['max_ss'] + 1,
+            geometry['panels'][pan]['min_fs']:
+            geometry['panels'][pan]['max_fs'] + 1
+        ] = pan_clen
 
-    return PixelMaps(x_map, y_map, r_map)
+    r_map = numpy.sqrt(numpy.square(x_map) + numpy.square(y_map))
+    phi_map = numpy.arctan2(y_map, x_map)
+
+    return PixelMaps(x_map, y_map, z_map, r_map, phi_map)
 
 
 def compute_min_array_size(pixel_maps):
     """
-    Compute the minimum array size storing data with applied geometry.
+    Compute the minimum size of an array stroing the applied geometry.
 
     Return the minimum size of an array that can store data on which
     the geometry information described by the pixel maps has been
@@ -146,7 +168,7 @@ def compute_min_array_size(pixel_maps):
 
     Args:
 
-        pixel_maps [PixelMaps]: a PixelMaps tuple.
+        pixel_maps (PixelMaps): a :obj:`PixelMaps` tuple.
 
     Returns:
 
@@ -173,7 +195,7 @@ def compute_visualization_pix_maps(geometry):
 
     Args:
 
-        geometry (dict): A CrystFEL geometry object (A dictionary
+        geometry (Dict): A CrystFEL geometry object (A dictionary
             returned by the
             :obj:`cfelpyutils.crystfel_utils.load_crystfel_geometry`
             function).
@@ -181,10 +203,10 @@ def compute_visualization_pix_maps(geometry):
     Returns:
 
         PixelMaps: A PixelMaps tuple containing the adjusted pixel
-            maps. The first two fields, named "x" and "y" respectively,
-            store the pixel maps for the x coordinate and the y
-            coordinates (as ndarrays of type int). The third field
-            ("r") is just set to None.
+        maps. The first two fields, named "x" and "y" respectively,
+        store the pixel maps for the x coordinate and the y
+        coordinates (as ndarrays of type int). The third field
+        ("r") is just set to None.
     """
     # Shift the origin of the reference system from the beam position
     # to the top-left of the image that will be displayed. Compute the
