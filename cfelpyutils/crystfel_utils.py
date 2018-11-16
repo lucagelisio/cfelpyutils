@@ -27,6 +27,8 @@ import copy
 import math
 import re
 
+from future.utils import viewitems
+
 
 def _assplode_algebraic(value):
     # Reimplementation of assplode_algegraic from
@@ -112,6 +114,7 @@ def _set_dim_structure_entry(key, value, panel):
         dim[dim_index] = int(value)
     else:
         raise RuntimeError("Invalid dim entry: {}.".format(value))
+    panel['dim_structure'] = dim
 
 
 def _parse_field_for_panel(key, value, panel):
@@ -229,7 +232,7 @@ def _parse_field_for_panel(key, value, panel):
             panel=panel
         )
     else:
-        raise RuntimeError("Unrecognised field: {}".format(key))
+        RuntimeError("Unrecognised field: {}".format(key))
 
 
 def _parse_toplevel(key, value, detector, beam, panel):
@@ -464,7 +467,6 @@ def load_crystfel_geometry(filename):
         'satmap_file': None,
         'data': None,
         'dim_structure': None,
-        'name': ''
     }
 
     default_bad_region = {
@@ -477,7 +479,6 @@ def load_crystfel_geometry(filename):
         'min_ss': 0,
         'max_ss': 0,
         'is_fsss': 99,
-        'name': ''
     }
 
     default_dim = [
@@ -552,7 +553,7 @@ def load_crystfel_geometry(filename):
     num_placeholders_in_panels = None
     for panel in detector['panels'].values():
         if panel['dim_structure'] is not None:
-            curr_num_placeholders = panel['dim_structure'].values().count('%')
+            curr_num_placeholders = panel['dim_structure'].count('%')
         else:
             curr_num_placeholders = 0
 
@@ -588,7 +589,7 @@ def load_crystfel_geometry(filename):
         )
 
     dim_length = None
-    for panel in detector['panels'].values():
+    for panel_name, panel in viewitems(detector['panels']):
         if panel['dim_structure'] is None:
             panel['dim_structure'] = copy.deepcopy(default_dim)
 
@@ -600,40 +601,41 @@ def load_crystfel_geometry(filename):
                 raise RuntimeError(
                     "Dimension {} for panel {} is undefined.".format(
                         dim_index,
-                        panel['name']
+                        panel_name
                     )
                 )
             elif entry == 'ss':
                 found_ss += 1
-                if found_ss != 1:
-                    raise RuntimeError(
-                        "Exactly one slow scan dim coordinate is needed "
-                        "(found {} for panel {})".format(
-                            found_ss,
-                            panel['name']
-                        )
-                    )
             elif entry == 'fs':
                 found_fs += 1
-                if found_fs != 1:
-                    raise RuntimeError(
-                        "Exactly one fast scan dim coordinate is needed "
-                        "(found {} for panel {})".format(
-                            found_fs,
-                            panel['name']
-                        )
-                    )
             elif entry == '%':
                 found_placeholder += 1
-                if found_placeholder != 1:
-                    raise RuntimeError(
-                        "Only one placeholder dim coordinate is allowed."
-                        "Maximum one placeholder dim coordinate is "
-                        "allowed (found {} for panel {})".format(
-                            found_placeholder,
-                            panel['name']
-                        )
-                    )
+
+        if found_ss != 1:
+            raise RuntimeError(
+                "Exactly one slow scan dim coordinate is needed "
+                "(found {} for panel {})".format(
+                    found_ss,
+                    panel_name
+                )
+            )
+        if found_fs != 1:
+            raise RuntimeError(
+                "Exactly one fast scan dim coordinate is needed "
+                "(found {} for panel {})".format(
+                    found_fs,
+                    panel_name
+                )
+            )
+        if found_placeholder != 1:
+            raise RuntimeError(
+                "Only one placeholder dim coordinate is allowed."
+                "Maximum one placeholder dim coordinate is "
+                "allowed (found {} for panel {})".format(
+                    found_placeholder,
+                    panel_name
+                )
+            )
 
         if dim_length is None:
             dim_length = len(panel['dim_structure'])
@@ -647,59 +649,59 @@ def load_crystfel_geometry(filename):
                 "Number of dim coordinates must be at least two."
             )
 
-    for panel in detector['panels'].values():
+    for panel_name, panel in viewitems(detector['panels']):
         if panel['origin_min_fs'] < 0:
             raise RuntimeError(
                 "Please specify the minimum fs coordinate for "
-                "panel {}.".format(panel['name'])
+                "panel {}.".format(panel_name)
             )
 
         if panel['origin_max_fs'] < 0:
             raise RuntimeError(
                 "Please specify the maximum fs coordinate for "
-                "panel {}.".format(panel['name'])
+                "panel {}.".format(panel_name)
             )
 
         if panel['origin_min_ss'] < 0:
             raise RuntimeError(
                 "Please specify the minimum ss coordinate for "
-                "panel {}.".format(panel['name'])
+                "panel {}.".format(panel_name)
             )
 
         if panel['origin_max_ss'] < 0:
             raise RuntimeError(
                 "Please specify the maximum ss coordinate for "
-                "panel {}.".format(panel['name'])
+                "panel {}.".format(panel_name)
             )
 
         if panel['cnx'] is None:
             raise RuntimeError(
                 "Please specify the corner X coordinate for "
-                "panel {}.".format(panel['name'])
+                "panel {}.".format(panel_name)
             )
 
         if panel['clen'] is None and panel['clen_from'] is None:
             raise RuntimeError(
                 "Please specify the camera length for "
-                "panel {}.".format(panel['name'])
+                "panel {}.".format(panel_name)
             )
 
         if panel['res'] < 0:
             raise RuntimeError(
                 "Please specify the resolution or "
-                "panel {}.".format(panel['name'])
+                "panel {}.".format(panel_name)
             )
 
         if panel['adu_per_eV'] is None and panel['adu_per_photon'] is None:
             raise RuntimeError(
                 "Please specify either adu_per_eV or adu_per_photon "
-                "for panel {}.".format(panel['name'])
+                "for panel {}.".format(panel_name)
             )
 
         if panel['clen_for_centering'] is None and panel['rail_x'] is not None:
             raise RuntimeError(
                 "You must specify clen_for_centering if you specify the "
-                "rail direction (panel {})".format(panel['name'])
+                "rail direction (panel {})".format(panel_name)
             )
 
         if panel['rail_x'] is None:
@@ -713,11 +715,11 @@ def load_crystfel_geometry(filename):
         panel['w'] = panel['origin_max_fs'] - panel['origin_min_fs'] + 1
         panel['h'] = panel['origin_max_ss'] - panel['origin_min_ss'] + 1
 
-    for bad_region in detector['bad'].values():
+    for bad_region_name, bad_region in viewitems(detector['bad']):
         if bad_region['is_fsss'] == 99:
             raise RuntimeError(
                 "Please specify the coordinate ranges for bad "
-                "region {}.".format(bad_region['name'])
+                "region {}.".format(bad_region_name)
             )
 
     for group in detector['rigid_groups']:
