@@ -91,7 +91,17 @@ def _set_dim_structure_entry(key, value, panel):
     else:
         dim = []
 
-    dim_index = int(key[3])
+    try:
+        dim_index = int(key[3])
+    except IndexError:
+        raise RuntimeError(
+            "'dim' must be followed by a number, e.g. 'dim0')"
+        )
+    except ValueError:
+        raise RuntimeError(
+            "Invalid dimension number {}".format(key[3])
+        )
+
     if dim_index > len(dim) - 1:
         for _ in range(len(dim), dim_index + 1):
             dim.append(None)
@@ -593,8 +603,8 @@ def load_crystfel_geometry(filename):
                         panel['name']
                     )
                 )
-
             elif entry == 'ss':
+                found_ss += 1
                 if found_ss != 1:
                     raise RuntimeError(
                         "Exactly one slow scan dim coordinate is needed "
@@ -603,10 +613,8 @@ def load_crystfel_geometry(filename):
                             panel['name']
                         )
                     )
-                else:
-                    found_ss += 1
-
             elif entry == 'fs':
+                found_fs += 1
                 if found_fs != 1:
                     raise RuntimeError(
                         "Exactly one fast scan dim coordinate is needed "
@@ -615,10 +623,8 @@ def load_crystfel_geometry(filename):
                             panel['name']
                         )
                     )
-                else:
-                    found_fs += 1
-
             elif entry == '%':
+                found_placeholder += 1
                 if found_placeholder != 1:
                     raise RuntimeError(
                         "Only one placeholder dim coordinate is allowed."
@@ -628,8 +634,6 @@ def load_crystfel_geometry(filename):
                             panel['name']
                         )
                     )
-                else:
-                    found_placeholder += 1
 
         if dim_length is None:
             dim_length = len(panel['dim_structure'])
@@ -746,6 +750,6 @@ def load_crystfel_geometry(filename):
 
     # The code of this function is synced with the code of the function
     # 'get_detector_geometry_2' in CrystFEL at commit
-    # 92f2ebfd11d0ccd91ab299f95ffb2d99a457643d
+    # dabbe320ff1d54d8ad24954b1e391f1b58ec0866
 
     return detector
