@@ -627,7 +627,7 @@ def load_crystfel_geometry(filename):
                     panel_name
                 )
             )
-        if found_placeholder != 1:
+        if found_placeholder > 1:
             raise RuntimeError(
                 "Only one placeholder dim coordinate is allowed."
                 "Maximum one placeholder dim coordinate is "
