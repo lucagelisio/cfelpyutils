@@ -205,8 +205,8 @@ def compute_visualization_pix_maps(geometry):
         PixelMaps: A PixelMaps tuple containing the adjusted pixel
         maps. The first two fields, named "x" and "y" respectively,
         store the pixel maps for the x coordinate and the y
-        coordinates (as ndarrays of type int). The third field
-        ("r") is just set to None.
+        coordinates (as ndarrays of type int). The third, fourth and
+        fifth fields ("z", "r" and "phi") are just set to None.
     """
     # Shift the origin of the reference system from the beam position
     # to the top-left of the image that will be displayed. Compute the
@@ -224,4 +224,4 @@ def compute_visualization_pix_maps(geometry):
         dtype=numpy.int
     ) + min_shape[0] // 2 - 1
 
-    return PixelMaps(new_x_map, new_y_map, None)
+    return PixelMaps(new_x_map, new_y_map, None, None, None)
