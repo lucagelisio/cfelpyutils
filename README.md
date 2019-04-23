@@ -8,9 +8,9 @@ Copyright © 2018 Deutsches Elektronen-Synchrotron DESY,
 
 <http://www.cfel.de>
 
-CfelPyUtils is a library of several utility functions and classes used
-by several software projects developed at the Center For Free Electron
-Laser Science (CFEL) in Hamburg.
+CfelPyUtils is a library of several utility functions and classes used by several
+software projects developed at the Center For Free Electron Laser Science (CFEL) in
+Hamburg.
 
 Requirements
 ------------
@@ -20,7 +20,8 @@ Requirements
 Support
 -------
   
-  * Report issues on the [GitHub issue tracker](https://github.com/ondateam/cfelpyutils/issues)
+  * Report issues on the
+    [GitHub issue tracker](https://github.com/ondateam/cfelpyutils/issues)
 
 
 Installation Methods
@@ -35,4 +36,5 @@ Installation Methods
 Documentation
 -------------
 
-The API documentation can be found on [Read The Docs](https://cfelpyutils.readthedocs.io/en/latest)
+The API documentation can be found on
+[Read The Docs](https://cfelpyutils.readthedocs.io/en/latest)
