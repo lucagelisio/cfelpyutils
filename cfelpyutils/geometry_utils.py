@@ -225,3 +225,36 @@ def compute_visualization_pix_maps(geometry):
     ) + min_shape[0] // 2 - 1
 
     return PixelMaps(new_x_map, new_y_map, None, None, None)
+
+
+def apply_geometry_to_data(data, geometry):
+    """
+    Apply geometry to data.
+
+    Returns a new numpy array containing the input data with the geometry applied.
+    The array is ready to be displayed using a library like matplotlib or pyqtgraph.
+
+    Args:
+
+        data (ndarray): a numpy array storing the data to which geometry should be
+            applied.
+
+        geometry (Dict): A CrystFEL geometry object (A dictionary
+            returned by the
+            :obj:`cfelpyutils.crystfel_utils.load_crystfel_geometry`
+            function).
+
+    Returns:
+
+        ndarray: a new array containing the input data to which the geometry has been
+        applied. The returned array shape is big enough to display all the input data
+        in the reference system of the physical detector. The array is also supposed to
+        be centered at the center of the reference system of the detector (i.e: the
+        beam interaction point).
+    """
+    pixel_maps = compute_pix_maps(geometry)
+    min_array_shape = compute_min_array_size(pixel_maps)
+    visualization_array = numpy.zeros(min_array_shape, dtype=float)
+    visual_pixel_maps = compute_visualization_pix_maps(geometry)
+    visualization_array[visual_pixel_maps.y.flatten(), visual_pixel_maps.x.flatten()] = data.ravel().astype(visualization_array.dtype)
+    return visualization_array
