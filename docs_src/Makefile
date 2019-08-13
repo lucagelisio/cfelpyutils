@@ -20,5 +20,5 @@ help:
 
 docs:
 	@make html
-	@rm -fr ../docs/*
-	@cp -a _build/html/. ../docs
+	@rm -fr ../docs/html*
+	@cp -a _build/html/. ../docs/html
