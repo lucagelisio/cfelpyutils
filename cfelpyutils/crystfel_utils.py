@@ -361,7 +361,7 @@ def load_crystfel_geometry(filename):
 
     This function is a reimplementation of the get_detector_geometry_2 function from
     CrystFEL. It reads information from a CrystFEL geometry file.
-    
+
     For a full documentation of the CrystFEL geometry format, see the relevant `man
     page <http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html>`_.
 
@@ -375,7 +375,6 @@ def load_crystfel_geometry(filename):
     * The code of this function is currently synchronized with the code of the function
       'get_detector_geometry_2' in CrystFEL at commit 41a8fa9819010.
 
-    
     Arguments:
 
         filename (str): the absolute or relative path to a CrystFEL geometry file.
