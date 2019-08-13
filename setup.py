@@ -13,12 +13,13 @@
 #
 # Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
+# pylint: disable=invalid-name,missing-docstring
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from setuptools import setup
 
 
-version_fh = open("onda/__init__.py", "r")
+version_fh = open("cfelpyutils/__init__.py", "r")
 version = version_fh.readlines()[-1].split("=")[1].strip().split('"')[1]
 version_fh.close()
 
