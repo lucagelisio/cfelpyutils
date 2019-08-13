@@ -1,23 +1,23 @@
-# This file is part of OnDA.
+# This file is part of CFELPyUtils.
 #
-# OnDA is free software: you can redistribute it and/or modify it under the terms of
-# the GNU General Public License as published by the Free Software Foundation, either
-# version 3 of the License, or (at your option) any later version.
+# CFELPyUtils is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
 #
-# OnDA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-# PURPOSE.  See the GNU General Public License for more details.
+# CFELPyUtils is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License along with OnDA.
-# If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with OnDA. If
+# not, see <http://www.gnu.org/licenses/>.
 #
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
 CrystFEL utilities.
 
-Python implementation of some functions from the `CrystFEL software package 
-<http://www.desy.de/~twhite/crystfel/>`_.
+This module contains Python reimplementations of some functions from the `CrystFEL
+<http://www.desy.de/~twhite/crystfel>`_ software package.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -25,11 +25,13 @@ import collections
 import copy
 import math
 import re
+from typing import Any, Dict, List, Union, Tuple  # pylint: disable=unused-import
 
 from future.utils import viewitems
 
 
 def _assplode_algebraic(value):
+    # type: (str) -> List[str]
     # Reimplementation of assplode_algegraic from libcrystfel/src/detector.c.
     items = [item for item in re.split("([+-])", string=value.strip()) if item != ""]
     if items and items[0] not in ("+", "-"):
@@ -38,25 +40,22 @@ def _assplode_algebraic(value):
 
 
 def _dir_conv(direction_x, direction_y, direction_z, value):
+    # type: (float, float, float, str) -> List[float]
     # Reimplementation of dir_conv from libcrystfel/src/detector.c.
     direction = [direction_x, direction_y, direction_z]
-
     items = _assplode_algebraic(value)
     if not items:
         raise RuntimeError("Invalid direction: {}.".format(value))
-
     for item in items:
         axis = item[-1]
         if axis != "x" and axis != "y" and axis != "z":
             raise RuntimeError("Invalid Symbol: {} (must be x, y or z).".format(axis))
-
         if item[:-1] == "+":
             value = "1.0"
         elif item[:-1] == "-":
             value = "-1.0"
         else:
             value = item[:-1]
-
         if axis == "x":
             direction[0] = float(value)
         elif axis == "y":
@@ -68,23 +67,21 @@ def _dir_conv(direction_x, direction_y, direction_z, value):
 
 
 def _set_dim_structure_entry(key, value, panel):
+    # type: (str, str, Dict[str, Any]) -> None
     # Reimplementation of set_dim_structure_entry from libcrystfel/src/events.c.
     if panel["dim_structure"] is not None:
         dim = panel["dim_structure"]
     else:
         dim = []
-
     try:
         dim_index = int(key[3])
     except IndexError:
         raise RuntimeError("'dim' must be followed by a number, e.g. 'dim0')")
     except ValueError:
         raise RuntimeError("Invalid dimension number {}".format(key[3]))
-
     if dim_index > len(dim) - 1:
         for _ in range(len(dim), dim_index + 1):
             dim.append(None)
-
     if value == "ss" or value == "fs" or value == "%":
         dim[dim_index] = value
     elif value.isdigit():
@@ -95,6 +92,7 @@ def _set_dim_structure_entry(key, value, panel):
 
 
 def _parse_field_for_panel(key, value, panel):
+    # type: (str, str, Dict[str, Any]) -> None
     # Reimplementation of parse_field_for_panel from libcrystfel/src/detector.c.
     if key == "min_fs":
         panel["origin_min_fs"] = int(value)
@@ -172,7 +170,6 @@ def _parse_field_for_panel(key, value, panel):
             print("badrow_direction must be x, t, f, s, or '-'")
             print("Assuming '-'.")
             panel["badrow"] = "-"
-
     elif key == "no_index":
         panel["no_index"] = bool(value)
     elif key == "fs":
@@ -185,7 +182,6 @@ def _parse_field_for_panel(key, value, panel):
             )
         except RuntimeError as exc:
             raise RuntimeError("Invalid fast scan direction.", exc)
-
     elif key == "ss":
         try:
             panel["ssx"], panel["ssy"], panel["ssz"] = _dir_conv(
@@ -196,7 +192,6 @@ def _parse_field_for_panel(key, value, panel):
             )
         except RuntimeError as exc:
             raise RuntimeError("Invalid slow scan direction.", exc)
-
     elif key.startswith("dim"):
         _set_dim_structure_entry(key=key, value=value, panel=panel)
     else:
@@ -204,6 +199,7 @@ def _parse_field_for_panel(key, value, panel):
 
 
 def _parse_toplevel(key, value, detector, beam, panel):
+    # type: (str, str, Dict[str, Any], Dict[str, Any], Dict[str, Any]) -> None
     # Reimplementation of parse_toplevel from libcrystfel/src/detector.c.
     if key == "mask_bad":
         try:
@@ -237,6 +233,7 @@ def _parse_toplevel(key, value, detector, beam, panel):
 
 
 def _check_bad_fsss(bad_region, is_fsss):
+    # type: (Dict[str, Any], int) -> None
     # Reimplementation of check_bad_fsss from libcrystfel/src/detector.c.
     if bad_region["is_fsss"] == 99:
         bad_region["is_fsss"] = is_fsss
@@ -249,6 +246,7 @@ def _check_bad_fsss(bad_region, is_fsss):
 
 
 def _parse_field_bad(key, value, bad):
+    # type: (str, str, Dict[str, Any]) -> None
     # Reimplementation of parse_field_bad from libcrystfel/src/detector.c.
     if key == "min_x":
         bad["min_x"] = float(value)
@@ -282,7 +280,16 @@ def _parse_field_bad(key, value, bad):
     return
 
 
-def _check_point(name, panel, fs_, ss_, min_d, max_d, detector):
+def _check_point(
+    name,  # type: str
+    panel,  # type: Dict[str, Any]
+    fs_,  # type: int
+    ss_,  # type: int
+    min_d,  # type: float
+    max_d,  # type: float
+    detector,  # type: Dict[str, Any]
+):
+    # type: (...) -> Tuple[float, float]
     # Reimplementation of check_point from libcrystfel/src/detector.c.
     xs_ = fs_ * panel["fsx"] + ss_ * panel["ssx"]
     ys_ = fs_ * panel["fsy"] + ss_ * panel["ssy"]
@@ -304,6 +311,7 @@ def _check_point(name, panel, fs_, ss_, min_d, max_d, detector):
 
 
 def _find_min_max_d(detector):
+    # type: (Dict[str, Any]) -> None
     # Reimplementation of find_min_max_d from libcrystfel/src/detector.c.
     min_d = float("inf")
     max_d = 0.0
@@ -347,27 +355,37 @@ def _find_min_max_d(detector):
 
 
 def load_crystfel_geometry(filename):
+    # type: (str) -> Dict[str, Any]
     """
-    Loads a CrystFEL geometry file into a dictionary.
+    Loads a CrystFEL geometry file.
 
-    Reimplementation of the get_detector_geometry_2 function from CrystFEL in python.
-    Returns a dictionary with the geometry information read from the file. Converts
-    entries in the geometry file to keys in the returned dictionary. For a full
-    documentation of the CrystFEL geometry format, see `CrystFEL's geometry man page
-    <http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.
-    html>`_. The code of this function is synced with the code of the function
-    'get_detector_geometry_2' in CrystFEL at commit 41a8fa9819010.
+    This function is a reimplementation of the get_detector_geometry_2 function from
+    CrystFEL. It reads information from a CrystFEL geometry file.
+    
+    For a full documentation of the CrystFEL geometry format, see the relevant `man
+    page <http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html>`_.
 
-    Args:
+    The function returns a dictionary with the geometry information.
 
-        filename (str): filename of the geometry file.
+    * The CrystFEL geometry file uses a key/value language. The keys in the returned
+      dictionary match the keys in the geometry file.
+
+    * The dictionary values store the corresponding values.
+
+    * The code of this function is currently synchronized with the code of the function
+      'get_detector_geometry_2' in CrystFEL at commit 41a8fa9819010.
+
+    
+    Arguments:
+
+        filename (str): the absolute or relative path to a CrystFEL geometry file.
 
     Returns:
 
-        Dict: dictionary with the geometry information loaded from the file.
+        Dict[str, Any]: a dictionary with the geometry information loaded from the
+        file.
     """
     beam = {"photon_energy": 0.0, "photon_energy_from": None, "photon_energy_scale": 1}
-
     detector = {
         "panels": collections.OrderedDict(),
         "bad": collections.OrderedDict(),
@@ -376,7 +394,6 @@ def load_crystfel_geometry(filename):
         "rigid_groups": {},
         "rigid_group_collections": {},
     }
-
     default_panel = {
         "cnx": None,
         "cny": None,
@@ -405,7 +422,6 @@ def load_crystfel_geometry(filename):
         "data": None,
         "dim_structure": None,
     }
-
     default_bad_region = {
         "min_x": None,
         "max_x": None,
@@ -417,7 +433,6 @@ def load_crystfel_geometry(filename):
         "max_ss": 0,
         "is_fsss": 99,
     }
-
     default_dim = ["ss", "fs"]
 
     fhandle = open(filename, mode="r")
@@ -425,18 +440,14 @@ def load_crystfel_geometry(filename):
     for line in fhlines:
         if line.startswith(";"):
             continue
-
         line_without_comments = line.strip().split(";")[0]
         line_items = re.split(pattern="([ \t])", string=line_without_comments)
         line_items = [item for item in line_items if item not in ("", " ", "\t")]
-
         if len(line_items) < 3:
             continue
-
         value = "".join(line_items[2:])
         if line_items[1] != "=":
             continue
-
         path = re.split("(/)", line_items[0])
         path = [item for item in path if item not in "/"]
         if len(path) < 2:
@@ -448,7 +459,6 @@ def load_crystfel_geometry(filename):
                 panel=default_panel,
             )
             continue
-
         curr_bad = None
         curr_panel = None
         if path[0].startswith("bad"):
@@ -467,10 +477,8 @@ def load_crystfel_geometry(filename):
             _parse_field_for_panel(key=path[1], value=value, panel=curr_panel)
         else:
             _parse_field_bad(key=path[1], value=value, bad=curr_bad)
-
     if not detector["panels"]:
         raise RuntimeError("No panel descriptions in geometry file.")
-
     num_placeholders_in_panels = None
     for panel in detector["panels"].values():
         if panel["dim_structure"] is not None:
@@ -486,7 +494,6 @@ def load_crystfel_geometry(filename):
                     "All panels' data and mask entries must have the same number of "
                     "placeholders."
                 )
-
     num_placeholders_in_masks = None
     for panel in detector["panels"].values():
         if panel["mask"] is not None:
@@ -502,12 +509,10 @@ def load_crystfel_geometry(filename):
                     "All panels' data and mask entries must have the same number of "
                     "placeholders."
                 )
-
     if num_placeholders_in_masks > num_placeholders_in_panels:
         raise RuntimeError(
             "Number of placeholders in mask cannot be larger the number than for data."
         )
-
     dim_length = None
     for panel_name, panel in viewitems(detector["panels"]):
         if panel["dim_structure"] is None:
@@ -529,7 +534,6 @@ def load_crystfel_geometry(filename):
                 found_fs += 1
             elif entry == "%":
                 found_placeholder += 1
-
         if found_ss != 1:
             raise RuntimeError(
                 "Exactly one slow scan dim coordinate is needed (found {} for panel "
@@ -547,17 +551,14 @@ def load_crystfel_geometry(filename):
                     found_placeholder, panel_name
                 )
             )
-
         if dim_length is None:
             dim_length = len(panel["dim_structure"])
         elif dim_length != len(panel["dim_structure"]):
             raise RuntimeError(
                 "Number of dim coordinates must be the same for all panels."
             )
-
         if dim_length == 1:
             raise RuntimeError("Number of dim coordinates must be at least two.")
-
     for panel_name, panel in viewitems(detector["panels"]):
         if panel["origin_min_fs"] < 0:
             raise RuntimeError(
@@ -565,68 +566,56 @@ def load_crystfel_geometry(filename):
                     panel_name
                 )
             )
-
         if panel["origin_max_fs"] < 0:
             raise RuntimeError(
                 "Please specify the maximum fs coordinate for panel {}.".format(
                     panel_name
                 )
             )
-
         if panel["origin_min_ss"] < 0:
             raise RuntimeError(
                 "Please specify the minimum ss coordinate for panel {}.".format(
                     panel_name
                 )
             )
-
         if panel["origin_max_ss"] < 0:
             raise RuntimeError(
                 "Please specify the maximum ss coordinate for panel {}.".format(
                     panel_name
                 )
             )
-
         if panel["cnx"] is None:
             raise RuntimeError(
                 "Please specify the corner X coordinate for panel {}.".format(
                     panel_name
                 )
             )
-
         if panel["clen"] is None and panel["clen_from"] is None:
             raise RuntimeError(
                 "Please specify the camera length for panel {}.".format(panel_name)
             )
-
         if panel["res"] < 0:
             raise RuntimeError(
                 "Please specify the resolution or panel {}.".format(panel_name)
             )
-
         if panel["adu_per_eV"] is None and panel["adu_per_photon"] is None:
             raise RuntimeError(
                 "Please specify either adu_per_eV or adu_per_photon for panel "
                 "{}.".format(panel_name)
             )
-
         if panel["clen_for_centering"] is None and panel["rail_x"] is not None:
             raise RuntimeError(
                 "You must specify clen_for_centering if you specify the rail "
                 "direction (panel {})".format(panel_name)
             )
-
         if panel["rail_x"] is None:
             panel["rail_x"] = 0.0
             panel["rail_y"] = 0.0
             panel["rail_z"] = 1.0
-
         if panel["clen_for_centering"] is None:
             panel["clen_for_centering"] = 0.0
-
         panel["w"] = panel["origin_max_fs"] - panel["origin_min_fs"] + 1
         panel["h"] = panel["origin_max_ss"] - panel["origin_min_ss"] + 1
-
     for bad_region_name, bad_region in viewitems(detector["bad"]):
         if bad_region["is_fsss"] == 99:
             raise RuntimeError(
@@ -634,14 +623,12 @@ def load_crystfel_geometry(filename):
                     bad_region_name
                 )
             )
-
     for group in detector["rigid_groups"]:
         for name in detector["rigid_groups"][group]:
             if name not in detector["panels"]:
                 raise RuntimeError(
                     "Cannot add panel to rigid_group. Panel not found: {}".format(name)
                 )
-
     for group_collection in detector["rigid_group_collections"]:
         for name in detector["rigid_group_collections"][group_collection]:
             if name not in detector["rigid_groups"]:
@@ -649,7 +636,6 @@ def load_crystfel_geometry(filename):
                     "Cannot add rigid_group to collection. Rigid group not "
                     "found: {}".format(name)
                 )
-
     for panel in detector["panels"].values():
         d__ = panel["fsx"] * panel["ssy"] - panel["ssx"] * panel["fsy"]
         if d__ == 0.0:
@@ -658,12 +644,7 @@ def load_crystfel_geometry(filename):
         panel["yfs"] = panel["ssx"] / d__
         panel["xss"] = panel["fsy"] / d__
         panel["yss"] = panel["fsx"] / d__
-
     _find_min_max_d(detector)
     fhandle.close()
-
-    # The code of this function is synced with the code of the function
-    # 'get_detector_geometry_2' in CrystFEL at commit 
-    # dabbe320ff1d54d8ad24954b1e391f1b58ec0866
 
     return detector

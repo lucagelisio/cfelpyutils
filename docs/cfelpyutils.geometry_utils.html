@@ -1,0 +1,214 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>The geometry_utils Module &#8212; CFELPyUtils 1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The named_tuples Module" href="cfelpyutils.named_tuples.html" />
+    <link rel="prev" title="The crystfel_utils Module" href="cfelpyutils.crystfel_utils.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-cfelpyutils.geometry_utils">
+<span id="the-geometry-utils-module"></span><h1>The geometry_utils Module<a class="headerlink" href="#module-cfelpyutils.geometry_utils" title="Permalink to this headline">¶</a></h1>
+<p>Geometry utilities.</p>
+<p>This module contains functions that manipulate geometry information.</p>
+<dl class="function">
+<dt id="cfelpyutils.geometry_utils.compute_pix_maps">
+<code class="descname">compute_pix_maps</code><span class="sig-paren">(</span><em>geometry</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cfelpyutils/geometry_utils.html#compute_pix_maps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cfelpyutils.geometry_utils.compute_pix_maps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes pixel maps from CrystFEL geometry information.</p>
+<p>This function takes as input some geometry information read from a <a class="reference external" href="http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html">CrystFEL</a> file, and
+returns a set of some pre-computed pixel maps.</p>
+<p>The origin and the orientation of the reference system for the pixel maps follow
+the same conventions as in CrystFEL:</p>
+<ul class="simple">
+<li>The center of the reference system is the beam interaction point.</li>
+<li>+z is the beam direction, and points along the beam (i.e. away from the source).</li>
+<li>+y points towards the zenith (ceiling).</li>
+<li>+x completes the right-handed coordinate system.</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>geometry</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a CrystFEL geometry object (A dictionary returned by
+the <a class="reference internal" href="cfelpyutils.crystfel_utils.html#cfelpyutils.crystfel_utils.load_crystfel_geometry" title="cfelpyutils.crystfel_utils.load_crystfel_geometry"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_crystfel_geometry()</span></code></a> function).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a named tuple storing the the
+pixel maps.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="cfelpyutils.named_tuples.html#cfelpyutils.named_tuples.PixelMaps" title="cfelpyutils.named_tuples.PixelMaps"><code class="xref py py-class docutils literal notranslate"><span class="pre">PixelMaps</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="cfelpyutils.geometry_utils.compute_visualization_pix_maps">
+<code class="descname">compute_visualization_pix_maps</code><span class="sig-paren">(</span><em>geometry</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cfelpyutils/geometry_utils.html#compute_visualization_pix_maps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cfelpyutils.geometry_utils.compute_visualization_pix_maps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes pixel maps for data visualization from CrystFEL geometry information.</p>
+<p>This function takes as input some geometry information read from a <a class="reference external" href="http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html">CrystFEL</a> file, and
+returns a set of some pre-computed pixel maps that can be used to display data in
+an ImageView widget from the <a class="reference external" href="http://pyqtgraph.org/">PyQtGraph</a> library.</p>
+<p>These pixel maps are different from the ones generated by the
+<a class="reference internal" href="#cfelpyutils.geometry_utils.compute_pix_maps" title="cfelpyutils.geometry_utils.compute_pix_maps"><code class="xref py py-func docutils literal notranslate"><span class="pre">compute_pix_maps()</span></code></a> function. The main differences are:</p>
+<ul class="simple">
+<li>The origin of the reference system is not the beam interaction point, but the top
+left corner of the array used to visualize the data.</li>
+<li>Only the x and y pixel maps are available. The other entries in the named tuple
+(z, r and phi) are set to None.</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>geometry</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a CrystFEL geometry object (A dictionary returned by
+the <a class="reference internal" href="cfelpyutils.crystfel_utils.html#cfelpyutils.crystfel_utils.load_crystfel_geometry" title="cfelpyutils.crystfel_utils.load_crystfel_geometry"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_crystfel_geometry()</span></code></a> function).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a named tuple with the pixel maps.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">PixelMaps</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="cfelpyutils.geometry_utils.apply_geometry_to_data">
+<code class="descname">apply_geometry_to_data</code><span class="sig-paren">(</span><em>data</em>, <em>geometry</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cfelpyutils/geometry_utils.html#apply_geometry_to_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cfelpyutils.geometry_utils.apply_geometry_to_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies CrystFEL geometry information to some data.</p>
+<p>This function takes as input some geometry information read from a <a class="reference external" href="http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html">CrystFEL</a> file, and
+some data on which to apply it. It returns an array that can be displayed using a
+library like <a class="reference external" href="https://matplotlib.org/">matplotlib</a> or
+<a class="reference external" href="http://pyqtgraph.org/">PyQtGraph</a>.</p>
+<p>The shape of the returned array is big enough to display all the input pixel
+values, and is symmetric around the center of the reference system (i.e: the beam
+interaction point).</p>
+<p>NOTE: This restrictions often cause the returned array to be bigger than the minimum
+size needed to store the physical layout of the pixels in the detector,
+particularly if the detector is not centered at the beam interaction point.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<em>numpy.ndarray</em>) – the data on which the geometry information should be
+applied.</li>
+<li><strong>geometry</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a CrystFEL geometry object (A dictionary returned by
+the <a class="reference internal" href="cfelpyutils.crystfel_utils.html#cfelpyutils.crystfel_utils.load_crystfel_geometry" title="cfelpyutils.crystfel_utils.load_crystfel_geometry"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_crystfel_geometry()</span></code></a> function).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an array containing the data with the geometry information
+applied.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">CFELPyUtils</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="cfelpyutils.html">The cfelpyutils Package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="cfelpyutils.crystfel_utils.html">crystfel_utils</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">geometry_utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cfelpyutils.named_tuples.html">named_tuples</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="cfelpyutils.html">The cfelpyutils Package</a><ul>
+      <li>Previous: <a href="cfelpyutils.crystfel_utils.html" title="previous chapter">The crystfel_utils Module</a></li>
+      <li>Next: <a href="cfelpyutils.named_tuples.html" title="next chapter">The named_tuples Module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, OnDA Team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

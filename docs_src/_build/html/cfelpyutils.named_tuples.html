@@ -1,0 +1,170 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>The named_tuples Module &#8212; CFELPyUtils 1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="The geometry_utils Module" href="cfelpyutils.geometry_utils.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-cfelpyutils.named_tuples">
+<span id="the-named-tuples-module"></span><h1>The named_tuples Module<a class="headerlink" href="#module-cfelpyutils.named_tuples" title="Permalink to this headline">¶</a></h1>
+<p>CFELPyUtils named tuples.</p>
+<p>This module contains a collection of named tuples used throughout the CFELPyUtils
+library.</p>
+<dl class="class">
+<dt id="cfelpyutils.named_tuples.PixelMaps">
+<em class="property">class </em><code class="descname">PixelMaps</code><a class="headerlink" href="#cfelpyutils.named_tuples.PixelMaps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<p>Pixel maps that store geometry information.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>x</strong> (<em>numpy.ndarray</em>) – pixel map for the x coordinate.</li>
+<li><strong>y</strong> (<em>numpy.ndarray</em>) – pixel map for the y coordinate.</li>
+<li><strong>z</strong> (<em>numpy.ndarray</em>) – pixel map for the z coordinate.</li>
+<li><strong>r</strong> (<em>numpy.ndarray</em>) – pixel map storing the distance of each pixel from the center of
+the reference system.</li>
+<li><strong>phi</strong> (<em>numpy.ndarray</em>) – pixel map storing the amplitude of the angle between each
+pixel, the center of the reference system, and the x axis through the center.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="cfelpyutils.named_tuples.PixelMaps.phi">
+<code class="descname">phi</code><a class="headerlink" href="#cfelpyutils.named_tuples.PixelMaps.phi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cfelpyutils.named_tuples.PixelMaps.r">
+<code class="descname">r</code><a class="headerlink" href="#cfelpyutils.named_tuples.PixelMaps.r" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cfelpyutils.named_tuples.PixelMaps.x">
+<code class="descname">x</code><a class="headerlink" href="#cfelpyutils.named_tuples.PixelMaps.x" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cfelpyutils.named_tuples.PixelMaps.y">
+<code class="descname">y</code><a class="headerlink" href="#cfelpyutils.named_tuples.PixelMaps.y" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cfelpyutils.named_tuples.PixelMaps.z">
+<code class="descname">z</code><a class="headerlink" href="#cfelpyutils.named_tuples.PixelMaps.z" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">CFELPyUtils</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="cfelpyutils.html">The cfelpyutils Package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="cfelpyutils.crystfel_utils.html">crystfel_utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cfelpyutils.geometry_utils.html">geometry_utils</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">named_tuples</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="cfelpyutils.html">The cfelpyutils Package</a><ul>
+      <li>Previous: <a href="cfelpyutils.geometry_utils.html" title="previous chapter">The geometry_utils Module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, OnDA Team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

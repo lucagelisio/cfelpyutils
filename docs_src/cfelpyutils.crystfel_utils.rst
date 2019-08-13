@@ -1,5 +1,5 @@
-cfelpyutils.crystfel\_utils module
-==================================
+The crystfel\_utils Module
+==========================
 
 .. automodule:: cfelpyutils.crystfel_utils
     :members:

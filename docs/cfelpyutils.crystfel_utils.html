@@ -1,0 +1,148 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>The crystfel_utils Module &#8212; CFELPyUtils 1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The geometry_utils Module" href="cfelpyutils.geometry_utils.html" />
+    <link rel="prev" title="The cfelpyutils Package" href="cfelpyutils.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-cfelpyutils.crystfel_utils">
+<span id="the-crystfel-utils-module"></span><h1>The crystfel_utils Module<a class="headerlink" href="#module-cfelpyutils.crystfel_utils" title="Permalink to this headline">¶</a></h1>
+<p>CrystFEL utilities.</p>
+<p>This module contains Python reimplementations of some functions from the <a class="reference external" href="http://www.desy.de/~twhite/crystfel">CrystFEL</a> software package.</p>
+<dl class="function">
+<dt id="cfelpyutils.crystfel_utils.load_crystfel_geometry">
+<code class="descname">load_crystfel_geometry</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cfelpyutils/crystfel_utils.html#load_crystfel_geometry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cfelpyutils.crystfel_utils.load_crystfel_geometry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a CrystFEL geometry file.</p>
+<p>This function is a reimplementation of the get_detector_geometry_2 function from
+CrystFEL. It reads information from a CrystFEL geometry file.</p>
+<p>For a full documentation of the CrystFEL geometry format, see the relevant <a class="reference external" href="http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html">man
+page</a>.</p>
+<p>The function returns a dictionary with the geometry information.</p>
+<ul class="simple">
+<li>The CrystFEL geometry file uses a key/value language. The keys in the returned
+dictionary match the keys in the geometry file.</li>
+<li>The dictionary values store the corresponding values.</li>
+<li>The code of this function is currently synchronized with the code of the function
+‘get_detector_geometry_2’ in CrystFEL at commit 41a8fa9819010.</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) – the absolute or relative path to a CrystFEL geometry file.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a dictionary with the geometry information loaded from the
+file.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Dict[str, Any]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">CFELPyUtils</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="cfelpyutils.html">The cfelpyutils Package</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">crystfel_utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cfelpyutils.geometry_utils.html">geometry_utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cfelpyutils.named_tuples.html">named_tuples</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="cfelpyutils.html">The cfelpyutils Package</a><ul>
+      <li>Previous: <a href="cfelpyutils.html" title="previous chapter">The cfelpyutils Package</a></li>
+      <li>Next: <a href="cfelpyutils.geometry_utils.html" title="next chapter">The geometry_utils Module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, OnDA Team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

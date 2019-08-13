@@ -17,12 +17,14 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from setuptools import setup
 
-import cfelpyutils
 
+version_fh = open("onda/__init__.py", "r")
+version = version_fh.readlines()[-1].split("=")[1].strip().split('"')[1]
+version_fh.close()
 
 setup(
     name="cfelpyutils",
-    version=cfelpyutils.__version__,
+    version=version,
     url="https://github.com/ondateam/cfelpyutils",
     license="GNU General Public License v3.0",
     author="OnDA Team",
@@ -41,7 +43,6 @@ setup(
     platforms="any",
     classifiers=[
         "Programming Language :: Python",
-        "Development Status :: 4 - Beta",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 2",
         "Operating System :: OS Independent",
