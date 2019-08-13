@@ -74,6 +74,13 @@ Code Documentation
 Code documentation for the CFELPyUtils library can be found :doc:`here <cfelpyutils>`.
 
 
+Source Code
+-----------
+
+The source code of the CFELPyUtils library can be found on GitHub:
+https://github.com/ondateam/cfelpyutils
+
+
 Guidelines for Contributors
 ---------------------------
 
