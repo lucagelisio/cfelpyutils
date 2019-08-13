@@ -1,40 +1,56 @@
-CfelPyUtils
-===========
+The CFELPyUtils Library
+=======================
 
-Utility functions and classes for CFEL software projects
 
-Copyright © 2018 Deutsches Elektronen-Synchrotron DESY,
-                 a research centre of the Helmholtz Association.
-
-<http://www.cfel.de>
-
-CfelPyUtils is a library of several utility functions and classes used by several
-software projects developed at the Center For Free Electron Laser Science (CFEL) in
-Hamburg.
-
-Requirements
+Introduction
 ------------
 
-  * NumPy
+CFELPyUtils is a utility library written in Python and developed at the Center For Free
+Electron Laser Science (CFEL) in Hamburg. It contains several functions and classes
+that perform various tasks related to the processing of x-ray imaging data (currently,
+mostly reading and applying geometry information to x-ray detector data). It is used by
+several internal and released CFEL software projects.
 
-Support
+
+Installation
+------------
+
+The CFELPyUtils library is available on the [Python Package Index](https://pypi.org/)
+(PyPI). It can be installed using the 'pip' command:
+
+    python3 -m pip install cfelpyutils
+
+Or, for Python 2:
+
+    python2 -m pip install cfelpyutils
+
+It is also available as a package for the [Anaconda](<https://anaconda.org/>) Python
+distribution. It can be installed using the 'conda' command:
+
+    conda install -c ondateam cfelpyutils
+
+The library can also be installed manually by checking out the repository and running:
+
+    python setup.py install 
+
+
+Authors
 -------
-  
-  * Report issues on the
-    [GitHub issue tracker](https://github.com/ondateam/cfelpyutils/issues)
 
+The CFELPyUtils library is currently developed in the lab of 
+[Henry Chapman](https://cid.cfel.de/) at the Center For Free Electron Laser Science
+in Hamburg. 
 
-Installation Methods
---------------------
+Many people from different institutions worlwide contribute code, testing and support
+to the project:
 
-  * From pypi:  
-        `pip install cfelpyutils`
-  * From source:
-        `python setup.py install`
-  * Simply copy the cfelpyutils subdirectory in your project. 
+* **Valerio Mariani** (corresponding author: valerio.mariani@desy.de)
+* Anton Barty
+* Andrew Morgan
+* Thomas A. White
+
 
 Documentation
--------------
+------------------
 
-The API documentation can be found on
-[Read The Docs](https://cfelpyutils.readthedocs.io/en/latest)
+Documentation for the CFELPyUtils is available on [ReadTheDocs](https://readthedocs.org/projects/cfelpyutils/)
