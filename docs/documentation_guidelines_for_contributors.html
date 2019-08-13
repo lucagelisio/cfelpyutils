@@ -1,0 +1,146 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Guidelines for Contributors &#8212; CFELPyUtils 1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="The named_tuples Module" href="cfelpyutils.named_tuples.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="guidelines-for-contributors">
+<h1>Guidelines for Contributors<a class="headerlink" href="#guidelines-for-contributors" title="Permalink to this headline">¶</a></h1>
+<p>Contributions to the project are welcome. Please feel free to submit pull requests
+using the standard <a class="reference external" href="https://guides.github.com/introduction/flow/">GitHub flow</a>.</p>
+<div class="section" id="version-control">
+<h2>Version Control<a class="headerlink" href="#version-control" title="Permalink to this headline">¶</a></h2>
+<p>The CFELPyUtils library is developed using the <a class="reference external" href="https://git-scm.com">Git</a> version
+control system.</p>
+<p>It uses the branching strategy proposed by Vincent Driessen and commonly known as
+<a class="reference external" href="https://nvie.com/posts/a-successful-git-branching-model">Gitflow</a>.</p>
+</div>
+<div class="section" id="python">
+<h2>Python<a class="headerlink" href="#python" title="Permalink to this headline">¶</a></h2>
+<p>The CFELPyUtils library is mainly developed in <a class="reference external" href="https://www.python.org">Python</a>.</p>
+<ul class="simple">
+<li>All code in the library must run with both version 2 and 3 of Python, except for
+facility-specific code that specifically requires one of the two versions (for
+example, Python 2 for the LCSL facility). The code must specifically support all the
+currently active versions of python:<ul>
+<li>Python 2<ul>
+<li>2.7</li>
+</ul>
+</li>
+<li>Python 3<ul>
+<li>3.5</li>
+<li>3.6</li>
+<li>3.7</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>The <a class="reference external" href="https://python-future.org">python-future</a> project should be used to ensure
+that code contributed to the project is compatible with all the supported versions of
+Python.</li>
+<li>The Python coding style should follow for the most part the <a class="reference external" href="https://github.com/google/styleguide/blob/gh-pages/pyguide.md">Google Python Coding Style</a>.</li>
+<li>All docstrings should be written following the <a class="reference external" href="https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html">Google Style </a>.</li>
+<li><a class="reference external" href="https://www.pylint.org">Pylint</a> should be run on the code before
+submission, as stated in the Google Python Coding Style Guide. In the root
+folder of the CFELPyUtils repository, contributors can find  a ‘pylintrc’ file with
+the settings that should be applied when linting the code. Please see <a class="reference external" href="http://pylint.pycqa.org/en/latest/user_guide/run.html?highlight=pylintrc">here</a> how to
+use the pylintrc file.</li>
+<li>The <a class="reference external" href="https://github.com/psf/black">Black</a> Python code formatter should be run on
+the code before submission.</li>
+</ul>
+</div>
+<div class="section" id="c-c">
+<h2>C/C++<a class="headerlink" href="#c-c" title="Permalink to this headline">¶</a></h2>
+<p>Some extension can, for performance reason, be written using the <a class="reference external" href="https://en.wikipedia.org/wiki/C%2B%2B">C++</a> or  <a class="reference external" href="https://en.wikipedia.org/wiki/C_(programming_language)">C</a> programming languages.</p>
+<ul class="simple">
+<li>All C++ code in OnDA must follow at most the C++98 ISO standard, and the code
+must compile on a Linux RHEL7/CentOS7 platform using the standard development stack
+that comes with these systems.</li>
+<li>Part of the C++11 standard can be used when writing extensions. However, it must be
+possible to compile the code using version 4.8 of the ‘gcc’ compiler (in order to
+create the Linux binary Python wheel).</li>
+<li>All C code in OnDA must follow at most the C99 ISO standard, and the code
+must compile on a Linux RHEL7/CentOS7 platform using the standard development stack
+that comes with these systems.</li>
+<li>The <a class="reference external" href="http://cython.org">Cython</a> project should be used to interface C/C++ code with
+Python.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Guidelines for Contributors</a><ul>
+<li><a class="reference internal" href="#version-control">Version Control</a></li>
+<li><a class="reference internal" href="#python">Python</a></li>
+<li><a class="reference internal" href="#c-c">C/C++</a></li>
+</ul>
+</li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, OnDA Team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

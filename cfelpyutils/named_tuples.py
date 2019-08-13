@@ -37,5 +37,5 @@ Arguments:
         the reference system.
 
     phi (numpy.ndarray): pixel map storing the amplitude of the angle between each
-       pixel, the center of the reference system, and the x axis through the center.
+       pixel, the center of the reference system, and the x axis.
 """

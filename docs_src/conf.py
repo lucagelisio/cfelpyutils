@@ -101,6 +101,7 @@ html_static_path = ['_static']
 #
 html_sidebars = {
     "index": ["localtoc.html", "searchbox.html"],
+    "documentation*": ["localtoc.html", "searchbox.html"],
 }
 
 # -- Options for HTMLHelp output ---------------------------------------------

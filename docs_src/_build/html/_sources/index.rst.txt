@@ -10,6 +10,7 @@ CFELPyUtils
    :hidden:
 
    cfelpyutils
+   documentation_guidelines_for_contributors
 
 
 Introduction
@@ -25,29 +26,57 @@ several internal and released CFEL software projects.
 Installation
 ------------
 
-The CFELPyUtils library is available on PyPI and can be installed using the pip
-command:
+The CFELPyUtils library is available on the `Python Package Index
+<https://pypi.org/>`_ (PyPI). It can be installed using the 'pip' command:
 
 .. code-block:: bash
 
     python3 -m pip install cfelpyutils
 
-Or, for python2:
+Or, for Python 2:
 
 .. code-block:: bash
 
-    python -m pip install cfelpyutils
+    python2 -m pip install cfelpyutils
 
-
-It is also available as an Anaconda package in the 'ondateam' channel. It can be
-installed using the 'conda' command:
+It is also available as a package for the `Anaconda <https://anaconda.org/>`_ Python
+distribution. It can be installed using the 'conda' command:
 
 .. code-block:: bash
 
     conda install -c ondateam cfelpyutils
+
+The library can also be installed manually by checking out the repository and running:
+
+.. code-block:: bash
+
+    python setup.py install 
+
+
+Authors
+-------
+
+The CFELPyUtils library is currently developed in the lab of 
+`Henry Chapman <https://cid.cfel.de/>`_ at the Center For Free Electron Laser Science
+in Hamburg. 
+
+Many people from different institutions worlwide contribute code, testing and support
+to the project:
+
+* **Valerio Mariani** (corresponding author: valerio.mariani@desy.de)
+* Anton Barty
+* Andrew Morgan
+* Thomas A. White
 
 
 Code Documentation
 ------------------
 
 Code documentation for the CFELPyUtils library can be found :doc:`here <cfelpyutils>`.
+
+
+Guidelines for Contributors
+---------------------------
+
+Contributions to the projects are welcome. Please see the guidelines for contributors
+:doc:`here <documentation_guidelines_for_contributors>`.
