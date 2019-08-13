@@ -54,3 +54,4 @@ Documentation
 ------------------
 
 Documentation for the CFELPyUtils is available on [ReadTheDocs](https://readthedocs.org/projects/cfelpyutils/)
+and in the 'docs' folder of the repository.
