@@ -14,14 +14,44 @@
 # Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 # pylint: disable=invalid-name,missing-docstring
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import absolute_import, division, print_function
 
-from setuptools import setup
+import os
 
+import numpy
+from setuptools import Extension, setup
 
-version_fh = open("cfelpyutils/__init__.py", "r")
+version_fh = open("src/cfelpyutils/__init__.py", "r")
 version = version_fh.readlines()[-1].split("=")[1].strip().split('"')[1]
 version_fh.close()
+
+ONDA_USE_CYTHON = os.getenv("ONDA_USE_CYTHON")
+
+ext = ".pyx" if ONDA_USE_CYTHON else ".c"  # pylint: disable=invalid-name
+
+peakfinder8_ext = Extension(  # pylint: disable=invalid-name
+    name="cfelpyutils.lib.peakfinder8_extension",
+    include_dirs=[numpy.get_include()],
+    libraries=["stdc++"],
+    sources=[
+        "lib_src/peakfinder8_extension/peakfinder8.cpp",
+        "lib_src/peakfinder8_extension/peakfinder8_extension.pyx",
+    ]
+    if ONDA_USE_CYTHON
+    else [
+        "lib_src/peakfinder8_extension/peakfinder8_extension.cpp",
+        "lib_src/peakfinder8_extension/peakfinder8.cpp",
+    ],
+    language="c++",
+)
+
+if ONDA_USE_CYTHON:
+    from Cython.Build import cythonize
+
+    extensions = cythonize(peakfinder8_ext)  # pylint: disable=invalid-name
+else:
+    extensions = [peakfinder8_ext]  # pylint: disable=invalid-name
+
 
 setup(
     name="cfelpyutils",
@@ -38,8 +68,13 @@ setup(
         Center For Free Electron Laser Science (CFEL) in Hamburg.
         """
     ),
-    install_requires=["future", "numpy"],
-    packages=["cfelpyutils"],
+    install_requires=["future>=0.17.1", "h5py>=2.9.0", "numpy>=1.16.4"],
+    ext_modules=extensions,
+    packages=["cfelpyutils", "cfelpyutils.lib"],
+    package_dir={
+        "cfelpyutils": "src/cfelpyutils",
+        "cfelpyutils.lib": "src/cfelpyutils/lib",
+    },
     include_package_data=True,
     platforms="any",
     classifiers=[

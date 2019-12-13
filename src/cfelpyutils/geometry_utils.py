@@ -24,8 +24,6 @@ from typing import Any, Dict, Tuple  # pylint: disable=unused-import
 
 import numpy
 
-from cfelpyutils import named_tuples
-
 
 def compute_pix_maps(geometry):
     # type: (Dict[str, Any]) -> PixelMaps
@@ -54,8 +52,7 @@ def compute_pix_maps(geometry):
 
     Returns:
 
-        :class:`~cfelpyutils.named_tuples.PixelMaps`: a named tuple storing the the
-        pixel maps.
+        Dict[key, numpy.ndarray]:: a dictionary storing the the pixel maps.
     """
     max_fs_in_slab = numpy.array(
         [geometry["panels"][k]["max_fs"] for k in geometry["panels"]]
@@ -80,9 +77,9 @@ def compute_pix_maps(geometry):
     for pan in geometry["panels"]:
 
         if "clen" in geometry["panels"][pan]:
-            pan_clen = geometry["panels"][pan]["clen"]
+            first_panel_camera_length = geometry["panels"][pan]["clen"]
         else:
-            pan_clen = 0.0
+            first_panel_camera_length = 0.0
 
         ss_grid, fs_grid = numpy.meshgrid(
             numpy.arange(
@@ -118,12 +115,18 @@ def compute_pix_maps(geometry):
         z_map[
             geometry["panels"][pan]["min_ss"] : geometry["panels"][pan]["max_ss"] + 1,
             geometry["panels"][pan]["min_fs"] : geometry["panels"][pan]["max_fs"] + 1,
-        ] = pan_clen
+        ] = first_panel_camera_length
 
     r_map = numpy.sqrt(numpy.square(x_map) + numpy.square(y_map))
     phi_map = numpy.arctan2(y_map, x_map)
 
-    return named_tuples.PixelMaps(x_map, y_map, z_map, r_map, phi_map)
+    return {
+        "x": x_map,
+        "y": y_map,
+        "z": z_map,
+        "radius": r_map,
+        "phi": phi_map,
+    }
 
 
 def compute_visualization_pix_maps(geometry):
@@ -159,17 +162,21 @@ def compute_visualization_pix_maps(geometry):
     # display the data, then use this information to estimate the magnitude of the
     # shift.
     pixel_maps = compute_pix_maps(geometry)
-    x_map, y_map = pixel_maps.x, pixel_maps.y
+    x_map, y_map = pixel_maps["x"], pixel_maps["y"]
     y_minimum = 2 * int(max(abs(y_map.max()), abs(y_map.min()))) + 2
     x_minimum = 2 * int(max(abs(x_map.max()), abs(x_map.min()))) + 2
     min_shape = (y_minimum, x_minimum)
     new_x_map = (
-        numpy.array(object=pixel_maps.x, dtype=numpy.int) + min_shape[1] // 2 - 1
+        numpy.array(object=pixel_maps["x"], dtype=numpy.int) + min_shape[1] // 2 - 1
     )
     new_y_map = (
-        numpy.array(object=pixel_maps.y, dtype=numpy.int) + min_shape[0] // 2 - 1
+        numpy.array(object=pixel_maps["y"], dtype=numpy.int) + min_shape[0] // 2 - 1
     )
-    return named_tuples.PixelMaps(new_x_map, new_y_map, None, None, None)
+
+    return {
+        "x": new_x_map,
+        "y": new_y_map,
+    }
 
 
 def apply_geometry_to_data(data, geometry):
@@ -205,13 +212,13 @@ def apply_geometry_to_data(data, geometry):
         applied.
     """
     pixel_maps = compute_pix_maps(geometry)
-    x_map, y_map = pixel_maps.x, pixel_maps.y
+    x_map, y_map = pixel_maps["x"], pixel_maps["y"]
     y_minimum = 2 * int(max(abs(y_map.max()), abs(y_map.min()))) + 2
     x_minimum = 2 * int(max(abs(x_map.max()), abs(x_map.min()))) + 2
     min_shape = (y_minimum, x_minimum)
     visualization_array = numpy.zeros(min_shape, dtype=float)
     visual_pixel_maps = compute_visualization_pix_maps(geometry)
     visualization_array[
-        visual_pixel_maps.y.flatten(), visual_pixel_maps.x.flatten()
+        visual_pixel_maps["y"].flatten(), visual_pixel_maps["x"].flatten()
     ] = data.ravel().astype(visualization_array.dtype)
     return visualization_array
