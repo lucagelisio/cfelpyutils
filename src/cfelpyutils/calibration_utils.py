@@ -22,9 +22,10 @@ experiment-related).
 """
 from __future__ import absolute_import, division, print_function
 
-import numpy
+from typing import Any, Dict, List
 
-import h5py
+import h5py  # type: ignore
+import numpy  # type: ignore
 
 
 class Agipd1MCalibration(object):
@@ -62,13 +63,13 @@ class Agipd1MCalibration(object):
         """
         self._offset = numpy.ndarray(
             (3, len(cellid_list), 8192, 128), dtype=numpy.int16
-        )
+        )  # type: numpy.ndarray
         self._digital_gain = numpy.ndarray(
             (3, len(cellid_list), 8192, 128), dtype=numpy.int16
-        )
+        )  # type: numpy.ndarray
         self._relative_gain = numpy.ndarray(
             (3, len(cellid_list), 8192, 128), dtype=numpy.float32
-        )
+        )  # type: numpy.ndarray
 
         with h5py.File(calibration_filename) as hdf5_fh:
             for index, cell in enumerate(cellid_list):
@@ -85,7 +86,7 @@ class Agipd1MCalibration(object):
         self._cellid_list = cellid_list
 
     def apply_calibration(self, data_and_calibration_info):
-        # type: Dict[str, Any] -> numpy.ndarray
+        # type: (Dict[str, Any]) -> numpy.ndarray
         """
         Applies the calibration to a detector data frame.
 
@@ -116,10 +117,14 @@ class Agipd1MCalibration(object):
 
             numpy.ndarray:  the corrected data frame.
         """
-        gain_state = numpy.zeros_like(data_and_calibration_info["data"], dtype=int)
-        gain = data_and_calibration_info["info"]["gain"]
+        gain_state = numpy.zeros_like(
+            data_and_calibration_info["data"], dtype=int
+        )  # type: numpy.ndarray
+        gain = data_and_calibration_info["info"]["gain"]  # type: numpy.ndarray
         try:
-            num_frame = self._cellid_list.index(data_and_calibration_info.info["cell"])
+            num_frame = self._cellid_list.index(
+                data_and_calibration_info["info"]["cell"]
+            )  # type: int
         except ValueError:
             raise RuntimeError(
                 "Cannot find calibration parameters for cell {0}".format(
@@ -153,9 +158,13 @@ class Agipd1MCalibration(object):
                     numpy.squeeze(self._relative_gain[2, num_frame, ...]),
                 ),
             )
-        ).reshape(16, 512, 128)
-        masked_image = gain_offset_correction * self._detector_mask
-        median_mask = numpy.median(masked_image, axis=(1, 2))
+        ).reshape(
+            16, 512, 128
+        )  # type: numpy.ndarray
+        masked_image = (
+            gain_offset_correction * self._detector_mask
+        )  # type: numpy.ndarray
+        median_mask = numpy.median(masked_image, axis=(1, 2))  # type: numpy.ndarray
 
         return (
             (gain_offset_correction[:, :, :] - median_mask[:, None, None]).reshape(

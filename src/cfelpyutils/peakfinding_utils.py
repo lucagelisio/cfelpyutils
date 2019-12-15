@@ -22,12 +22,21 @@ data from crystallography experiments.
 from __future__ import absolute_import, division, print_function
 
 import sys
+from typing import Type, List, Union  # pylint: disable=unused-import
 
-import h5py
-import numpy
-from future.utils import raise_from
+import h5py  # type: ignore
+import numpy  # type: ignore
+from future.utils import raise_from  # type: ignore
+from mypy_extensions import TypedDict
 
 from .lib import peakfinder_8
+
+
+TypePeakList = TypedDict(  # pylint: disable=invalid-name
+    "TypePeakList",
+    {"num_peaks": int, "fs": List[float], "ss": List[float], "intensity": List[float]},
+    total=True,
+)
 
 
 class Peakfinder8PeakDetection(object):
@@ -128,27 +137,31 @@ class Peakfinder8PeakDetection(object):
                   the center of the detector of the corresponding pixel in the data
                   frame.
         """
-        self._max_num_peaks = max_num_peaks
-        self._asic_nx = asic_nx
-        self._asic_ny = asic_ny
-        self._nasics_x = nasics_x
-        self._nasics_y = nasics_y
-        self._adc_thresh = adc_threshold
-        self._minimum_snr = minimum_snr
-        self._min_pixel_count = min_pixel_count
-        self._max_pixel_count = max_pixel_count
-        self._local_bg_radius = local_bg_radius
-        self._radius_pixel_map = radius_pixel_map
-        self._min_res = min_res
-        self._max_res = max_res
-        self._mask_initialized = False
+        self._max_num_peaks = max_num_peaks  # type: int
+        self._asic_nx = asic_nx  # type: int
+        self._asic_ny = asic_ny  # type: int
+        self._nasics_x = nasics_x  # type: int
+        self._nasics_y = nasics_y  # type: int
+        self._adc_thresh = adc_threshold  # type: float
+        self._minimum_snr = minimum_snr  # type: float
+        self._min_pixel_count = min_pixel_count  # type: int
+        self._max_pixel_count = max_pixel_count  # type: int
+        self._local_bg_radius = local_bg_radius  # type: int
+        self._radius_pixel_map = radius_pixel_map  # type: numpy.ndarray
+        self._min_res = min_res  # type: int
+        self._max_res = max_res  # type: int
+        self._mask_initialized = False  # type: bool
 
         if bad_pixel_map_filename is not None:
             try:
                 with h5py.File(bad_pixel_map_filename, "r") as hdf5_file_handle:
-                    self._mask = hdf5_file_handle[bad_pixel_map_hdf5_path][:]
+                    self._mask = hdf5_file_handle[bad_pixel_map_hdf5_path][
+                        :
+                    ]  # type: Union[numpy.ndarray, None]
             except (IOError, OSError, KeyError) as exc:
-                exc_type, exc_value = sys.exc_info()[:2]
+                exc_type, exc_value = sys.exc_info()[
+                    :2
+                ]  # type: Union[Type[BaseException], None], Union[BaseException, None]
                 raise_from(
                     exc=RuntimeError(
                         "The following error occurred while reading the {0} field"
@@ -156,18 +169,17 @@ class Peakfinder8PeakDetection(object):
                         "{2}: {3}".format(
                             bad_pixel_map_filename,
                             bad_pixel_map_hdf5_path,
-                            exc_type.__name__,
+                            exc_type.__name__,  # type: ignore
                             exc_value,
                         )
                     ),
                     cause=exc,
                 )
-
         else:
             self._mask = None
 
     def find_peaks(self, data):
-        # type (numpy.ndarray) -> Dict[str, Any]
+        # type: (numpy.ndarray) -> TypePeakList
         """
         Finds peaks in a detector data frame.
 

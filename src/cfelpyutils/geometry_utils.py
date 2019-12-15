@@ -20,13 +20,14 @@ This module contains functions that manipulate geometry information.
 """
 from __future__ import absolute_import, division, print_function
 
-from typing import Any, Dict, Tuple  # pylint: disable=unused-import
+from typing import Dict, Tuple  # pylint: disable=unused-import
 
-import numpy
+import numpy  # type: ignore
+from cfelpyutils.crystfel_utils import TypeDetector  # pylint: disable=unused-import
 
 
 def compute_pix_maps(geometry):
-    # type: (Dict[str, Any]) -> PixelMaps
+    # type: (TypeDetector) -> Dict[str, numpy.ndarray]
     """
     Computes pixel maps from CrystFEL geometry information.
 
@@ -52,32 +53,31 @@ def compute_pix_maps(geometry):
 
     Returns:
 
-        Dict[key, numpy.ndarray]:: a dictionary storing the the pixel maps.
+        Dict[str, numpy.ndarray]:: a dictionary storing the the pixel maps.
     """
     max_fs_in_slab = numpy.array(
         [geometry["panels"][k]["max_fs"] for k in geometry["panels"]]
-    ).max()
+    ).max()  # type: int
     max_ss_in_slab = numpy.array(
         [geometry["panels"][k]["max_ss"] for k in geometry["panels"]]
-    ).max()
+    ).max()  # type: int
 
     x_map = numpy.zeros(
         shape=(max_ss_in_slab + 1, max_fs_in_slab + 1), dtype=numpy.float32
-    )
+    )  # type: numpy.ndarray
     y_map = numpy.zeros(
         shape=(max_ss_in_slab + 1, max_fs_in_slab + 1), dtype=numpy.float32
-    )
+    )  # type: numpy.ndarray
     z_map = numpy.zeros(
         shape=(max_ss_in_slab + 1, max_fs_in_slab + 1), dtype=numpy.float32
-    )
+    )  # type: numpy.ndarray
 
     # Iterates over the panels. For each panel, determines the pixel indices, then
     # computes the x,y vectors. Finally, copies the panel pixel maps into the
     # detector-wide pixel maps.
     for pan in geometry["panels"]:
-
         if "clen" in geometry["panels"][pan]:
-            first_panel_camera_length = geometry["panels"][pan]["clen"]
+            first_panel_camera_length = geometry["panels"][pan]["clen"]  # type: float
         else:
             first_panel_camera_length = 0.0
 
@@ -93,17 +93,17 @@ def compute_pix_maps(geometry):
                 + 1
             ),
             indexing="ij",
-        )
+        )  # type: numpy.ndarray, numpy.ndarray
         y_panel = (
             ss_grid * geometry["panels"][pan]["ssy"]
             + fs_grid * geometry["panels"][pan]["fsy"]
             + geometry["panels"][pan]["cny"]
-        )
+        )  # type: numpy.ndarray
         x_panel = (
             ss_grid * geometry["panels"][pan]["ssx"]
             + fs_grid * geometry["panels"][pan]["fsx"]
             + geometry["panels"][pan]["cnx"]
-        )
+        )  # type: numpy.ndarray
         x_map[
             geometry["panels"][pan]["min_ss"] : geometry["panels"][pan]["max_ss"] + 1,
             geometry["panels"][pan]["min_fs"] : geometry["panels"][pan]["max_fs"] + 1,
@@ -117,8 +117,8 @@ def compute_pix_maps(geometry):
             geometry["panels"][pan]["min_fs"] : geometry["panels"][pan]["max_fs"] + 1,
         ] = first_panel_camera_length
 
-    r_map = numpy.sqrt(numpy.square(x_map) + numpy.square(y_map))
-    phi_map = numpy.arctan2(y_map, x_map)
+    r_map = numpy.sqrt(numpy.square(x_map) + numpy.square(y_map))  # type: numpy.ndarray
+    phi_map = numpy.arctan2(y_map, x_map)  # type: numpy.ndarray
 
     return {
         "x": x_map,
@@ -130,7 +130,7 @@ def compute_pix_maps(geometry):
 
 
 def compute_visualization_pix_maps(geometry):
-    # type: (Dict[str, Any]) -> PixelMaps
+    # type: (TypeDetector) -> Dict[str, numpy.ndarray]
     """
     Computes pixel maps for data visualization from CrystFEL geometry information.
 
@@ -161,17 +161,20 @@ def compute_visualization_pix_maps(geometry):
     # of the image that will be displayed. Computes the size of the array needed to
     # display the data, then use this information to estimate the magnitude of the
     # shift.
-    pixel_maps = compute_pix_maps(geometry)
-    x_map, y_map = pixel_maps["x"], pixel_maps["y"]
-    y_minimum = 2 * int(max(abs(y_map.max()), abs(y_map.min()))) + 2
-    x_minimum = 2 * int(max(abs(x_map.max()), abs(x_map.min()))) + 2
-    min_shape = (y_minimum, x_minimum)
+    pixel_maps = compute_pix_maps(geometry)  # type: Dict[str, numpy.ndarray]
+    x_map, y_map = (
+        pixel_maps["x"],
+        pixel_maps["y"],
+    )  # type: numpy.ndarray, numpy.ndarray
+    y_minimum = 2 * int(max(abs(y_map.max()), abs(y_map.min()))) + 2  # type: int
+    x_minimum = 2 * int(max(abs(x_map.max()), abs(x_map.min()))) + 2  # type: int
+    min_shape = (y_minimum, x_minimum)  # type: Tuple[int, int]
     new_x_map = (
         numpy.array(object=pixel_maps["x"], dtype=numpy.int) + min_shape[1] // 2 - 1
-    )
+    )  # type: numpy.ndarray
     new_y_map = (
         numpy.array(object=pixel_maps["y"], dtype=numpy.int) + min_shape[0] // 2 - 1
-    )
+    )  # type: numpy.ndarray
 
     return {
         "x": new_x_map,
@@ -180,7 +183,7 @@ def compute_visualization_pix_maps(geometry):
 
 
 def apply_geometry_to_data(data, geometry):
-    # type: (numpy.ndarray, Dict[str, Any]) -> numpy.ndarray
+    # type: (numpy.ndarray, TypeDetector) -> numpy.ndarray
     """
     Applies CrystFEL geometry information to some data.
 
@@ -211,14 +214,20 @@ def apply_geometry_to_data(data, geometry):
         numpy.ndarray: an array containing the data with the geometry information
         applied.
     """
-    pixel_maps = compute_pix_maps(geometry)
-    x_map, y_map = pixel_maps["x"], pixel_maps["y"]
-    y_minimum = 2 * int(max(abs(y_map.max()), abs(y_map.min()))) + 2
-    x_minimum = 2 * int(max(abs(x_map.max()), abs(x_map.min()))) + 2
-    min_shape = (y_minimum, x_minimum)
-    visualization_array = numpy.zeros(min_shape, dtype=float)
-    visual_pixel_maps = compute_visualization_pix_maps(geometry)
+    pixel_maps = compute_pix_maps(geometry)  # type: Dict[str, numpy.ndarray]
+    x_map, y_map = (
+        pixel_maps["x"],
+        pixel_maps["y"],
+    )  # type: numpy.ndarray, numpy.ndarray
+    y_minimum = 2 * int(max(abs(y_map.max()), abs(y_map.min()))) + 2  # type: int
+    x_minimum = 2 * int(max(abs(x_map.max()), abs(x_map.min()))) + 2  # type: int
+    min_shape = (y_minimum, x_minimum)  # type: Tuple[int, int]
+    visualization_array = numpy.zeros(min_shape, dtype=float)  # type: numpy.ndarray
+    visual_pixel_maps = compute_visualization_pix_maps(
+        geometry
+    )  # type: Dict[str, numpy.ndarray]
     visualization_array[
         visual_pixel_maps["y"].flatten(), visual_pixel_maps["x"].flatten()
     ] = data.ravel().astype(visualization_array.dtype)
+
     return visualization_array
