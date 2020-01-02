@@ -13,6 +13,7 @@
 #
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
+# pylint: disable=too-many-lines
 """
 CrystFEL utilities.
 
@@ -36,7 +37,7 @@ TypeBeam = TypedDict(  # pylint: disable=invalid-name
     "TypeBeam",
     {
         "photon_energy": float,
-        "photon_energy_from": Union[str, None],
+        "photon_energy_from": str,
         "photon_energy_scale": float,
     },
     total=True,
@@ -50,17 +51,17 @@ TypePanel = TypedDict(  # pylint: disable=invalid-name
         "cny": float,
         "coffset": float,
         "clen": float,
-        "clen_from": Union[str, None],
-        "mask": Union[str, None],
-        "mask_file": Union[str, None],
-        "satmap": Union[str, None],
-        "satmap_file": Union[str, None],
+        "clen_from": str,
+        "mask": str,
+        "mask_file": str,
+        "satmap": str,
+        "satmap_file": str,
         "res": float,
         "badrow": str,
         "no_index": bool,
         "adu_per_photon": float,
         "max_adu": float,
-        "data": Union[str, None],
+        "data": str,
         "adu_per_eV": float,
         "dim_structure": List[Union[int, str, None]],
         "fsx": float,
@@ -90,7 +91,7 @@ TypePanel = TypedDict(  # pylint: disable=invalid-name
 TypeBadRegion = TypedDict(  # pylint: disable=invalid-name
     "TypeBadRegion",
     {
-        "panel": Union[str, None],
+        "panel": str,
         "min_x": float,
         "max_x": float,
         "min_y": float,
@@ -113,12 +114,12 @@ TypeDetector = TypedDict(  # pylint: disable=invalid-name
         "mask_bad": int,
         "rigid_groups": Dict[str, List[str]],
         "rigid_group_collections": Dict[str, List[str]],
-        "furthest_out_panel": Union[str, None],
-        "furthest_out_fs": int,
-        "furthest_out_ss": int,
-        "furthest_in_panel": Union[str, None],
-        "furthest_in_fs": int,
-        "furthest_in_ss": int,
+        "furthest_out_panel": str,
+        "furthest_out_fs": float,
+        "furthest_out_ss": float,
+        "furthest_in_panel": str,
+        "furthest_in_fs": float,
+        "furthest_in_ss": float,
     },
     total=True,
 )
@@ -239,7 +240,7 @@ def _parse_field_for_panel(  # pylint: disable=too-many-branches, too-many-state
     elif key == "clen":
         try:
             panel["clen"] = float(value)
-            panel["clen_from"] = None
+            panel["clen_from"] = ""
         except ValueError:
             panel["clen"] = -1
             panel["clen_from"] = value
@@ -312,9 +313,9 @@ def _parse_toplevel(
     detector,  # type: TypeDetector
     beam,  # type: TypeBeam
     panel,  # type: TypePanel
-    hdf5_peak_path,  # type: Union[str, None]
+    hdf5_peak_path,  # type: str
 ):  # pylint: disable=too-many-branches
-    # type: (...) -> Union[str, None]
+    # type: (...) -> str
     # Re-implementation of parse_toplevel from libcrystfel/src/detector.c.
     if key == "mask_bad":
         try:
@@ -334,7 +335,7 @@ def _parse_toplevel(
             beam["photon_energy_from"] = value
         else:
             beam["photon_energy"] = float(value)
-            beam["photon_energy_from"] = None
+            beam["photon_energy_from"] = ""
     elif key == "photon_energy_scale":
         beam["photon_energy_scale"] = float(value)
     elif key == "peak_info_location":
@@ -708,12 +709,12 @@ def load_crystfel_geometry(
 
         The third entry in the tuple is a string storing the HDF5 path where
         information about detected Bragg peaks can be found in a data file. If the
-        CrystFEL geometry file does not provide this information, the value None is
+        CrystFEL geometry file does not provide this information, an empty string is
         returned.
     """
     beam = {
         "photon_energy": 0.0,
-        "photon_energy_from": None,
+        "photon_energy_from": "",
         "photon_energy_scale": 1.0,
     }  # type: TypeBeam
     detector = {
@@ -723,29 +724,29 @@ def load_crystfel_geometry(
         "mask_bad": 0,
         "rigid_groups": {},
         "rigid_group_collections": {},
-        "furthest_out_panel": None,
-        "furthest_out_fs": int("NaN"),
-        "furthest_out_ss": int("NaN"),
-        "furthest_in_panel": None,
-        "furthest_in_fs": int("NaN"),
-        "furthest_in_ss": int("NaN"),
+        "furthest_out_panel": "",
+        "furthest_out_fs": float("NaN"),
+        "furthest_out_ss": float("NaN"),
+        "furthest_in_panel": "",
+        "furthest_in_fs": float("NaN"),
+        "furthest_in_ss": float("NaN"),
     }  # type: TypeDetector
     default_panel = {
         "cnx": float("NaN"),
         "cny": float("NaN"),
         "coffset": 0.0,
         "clen": float("NaN"),
-        "clen_from": None,
-        "mask": None,
-        "mask_file": None,
-        "satmap": None,
-        "satmap_file": None,
+        "clen_from": "",
+        "mask": "",
+        "mask_file": "",
+        "satmap": "",
+        "satmap_file": "",
         "res": -1.0,
         "badrow": "-",
         "no_index": False,
         "adu_per_photon": float("NaN"),
         "max_adu": float("inf"),
-        "data": None,
+        "data": "",
         "adu_per_eV": float("NaN"),
         "dim_structure": [],
         "fsx": 1.0,
@@ -766,11 +767,11 @@ def load_crystfel_geometry(
         "orig_max_fs": -1,
         "orig_min_ss": -1,
         "orig_max_ss": -1,
-        "w": int("NaN"),
-        "h": int("NaN"),
+        "w": 0,
+        "h": 0,
     }  # type: TypePanel
     default_bad_region = {
-        "panel": None,
+        "panel": "",
         "min_x": float("NaN"),
         "max_x": float("NaN"),
         "min_y": float("NaN"),
@@ -782,7 +783,7 @@ def load_crystfel_geometry(
         "is_fsss": 99,
     }  # type: TypeBadRegion
     default_dim = ["ss", "fs"]  # type: List[Union[int, str, None]]
-    hdf5_peak_path = None  # type: Union[str, None]
+    hdf5_peak_path = ""  # type: str
     try:
         with open(filename, mode="r") as file_handle:
             file_lines = file_handle.readlines()  # type: List[str]
@@ -815,17 +816,17 @@ def load_crystfel_geometry(
                     continue
                 if path[0].startswith("bad"):
                     if path[0] in detector["bad"]:
-                        curr_bad = detector["bad"][path[0]]  # type: TypeBadRegion
+                        curr_bad = detector["bad"][path[0]]
                     else:
                         curr_bad = copy.deepcopy(default_bad_region)
                         detector["bad"][path[0]] = curr_bad
+                    _parse_field_bad(key=path[1], value=value, bad=curr_bad)
                 else:
                     if path[0] in detector["panels"]:
-                        curr_panel = detector["panels"][path[0]]  # type: TypePanel
+                        curr_panel = detector["panels"][path[0]]
                     else:
                         curr_panel = copy.deepcopy(default_panel)
                         detector["panels"][path[0]] = curr_panel
-                if curr_panel is not None:
                     _parse_field_for_panel(
                         key=path[1],
                         value=value,
@@ -833,8 +834,6 @@ def load_crystfel_geometry(
                         panel_name=path[0],
                         detector=detector,
                     )
-                else:
-                    _parse_field_bad(key=path[1], value=value, bad=curr_bad)  # type: ignore
             if not detector["panels"]:
                 raise RuntimeError("No panel descriptions in geometry file.")
             num_placeholders_in_panels = -1  # type: int
@@ -876,9 +875,8 @@ def load_crystfel_geometry(
                 )
             dim_length = -1  # type: int
             for panel_name, panel in viewitems(detector["panels"]):
-                if panel["dim_structure"] is None:
+                if len(panel["dim_structure"]) == 0:
                     panel["dim_structure"] = copy.deepcopy(default_dim)
-
                 found_ss = 0  # type: int
                 found_fs = 0  # type: int
                 found_placeholder = 0  # type: int
@@ -1016,6 +1014,7 @@ def load_crystfel_geometry(
             :2
         ]  # type: Tuple[Union[Type[BaseException], None], Union[BaseException, None]]
         raise_from(
+            # TODO: Fix type check
             exc=RuntimeError(
                 "The following error occurred while reading the {0} geometry"
                 "file {1}: {2}".format(
