@@ -164,6 +164,7 @@ class Peakfinder8PeakDetection(
                     :2
                 ]  # type: Union[Type[BaseException], None], Union[BaseException, None]
                 raise_from(
+                    # TODO: Fix type check
                     exc=RuntimeError(
                         "The following error occurred while reading the {0} field"
                         "from the {1} bad pixel map HDF5 file:"
