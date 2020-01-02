@@ -68,7 +68,12 @@ setup(
         Center For Free Electron Laser Science (CFEL) in Hamburg.
         """
     ),
-    install_requires=["future>=0.17.1", "h5py>=2.9.0", "numpy>=1.16.4"],
+    install_requires=[
+        "future>=0.17.1",
+        "h5py>=2.9.0",
+        "mypy-extensions>=0.4.3",
+        "numpy>=1.16.4"
+    ],
     ext_modules=extensions,
     packages=["cfelpyutils", "cfelpyutils.lib"],
     package_dir={
