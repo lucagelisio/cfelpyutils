@@ -48,43 +48,39 @@ TypePanel = TypedDict(  # pylint: disable=invalid-name
     {
         "cnx": float,
         "cny": float,
+        "coffset": float,
         "clen": float,
         "clen_from": Union[str, None],
-        "coffset": float,
+        "mask": Union[str, None],
+        "mask_file": Union[str, None],
+        "satmap": Union[str, None],
+        "satmap_file": Union[str, None],
         "res": float,
         "badrow": str,
         "no_index": bool,
+        "adu_per_photon": float,
+        "max_adu": float,
+        "data": Union[str, None],
+        "adu_per_eV": float,
+        "dim_structure": List[Union[int, str, None]],
         "fsx": float,
         "fsy": float,
         "fsz": float,
         "ssx": float,
         "ssy": float,
         "ssz": float,
-        "xfs": float,
-        "yfs": float,
-        "xss": float,
-        "yss": float,
         "rail_x": float,
         "rail_y": float,
         "rail_z": float,
         "clen_for_centering": float,
+        "xfs": float,
+        "yfs": float,
+        "xss": float,
+        "yss": float,
         "orig_min_fs": int,
         "orig_max_fs": int,
         "orig_min_ss": int,
         "orig_max_ss": int,
-        "min_fs": int,
-        "max_fs": int,
-        "min_ss": int,
-        "max_ss": int,
-        "adu_per_eV": float,
-        "adu_per_photon": float,
-        "max_adu": float,
-        "mask": Union[str, None],
-        "mask_file": Union[str, None],
-        "satmap": Union[str, None],
-        "satmap_file": Union[str, None],
-        "data": Union[str, None],
-        "dim_structure": List[Union[int, str, None]],
         "w": int,
         "h": int,
     },
@@ -117,10 +113,10 @@ TypeDetector = TypedDict(  # pylint: disable=invalid-name
         "mask_bad": int,
         "rigid_groups": Dict[str, List[str]],
         "rigid_group_collections": Dict[str, List[str]],
-        "furthest_out_panel": Union[TypePanel, None],
+        "furthest_out_panel": Union[str, None],
         "furthest_out_fs": int,
         "furthest_out_ss": int,
-        "furthest_in_panel": Union[TypePanel, None],
+        "furthest_in_panel": Union[str, None],
         "furthest_in_fs": int,
         "furthest_in_ss": int,
     },
@@ -206,16 +202,12 @@ def _parse_field_for_panel(  # pylint: disable=too-many-branches, too-many-state
     # Re-implementation of parse_field_for_panel from libcrystfel/src/detector.c.
     if key == "min_fs":
         panel["orig_min_fs"] = int(value)
-        panel["min_fs"] = int(value)
     elif key == "max_fs":
         panel["orig_max_fs"] = int(value)
-        panel["max_fs"] = int(value)
     elif key == "min_ss":
         panel["orig_min_ss"] = int(value)
-        panel["min_ss"] = int(value)
     elif key == "max_ss":
         panel["orig_max_ss"] = int(value)
-        panel["max_ss"] = int(value)
     elif key == "corner_x":
         panel["cnx"] = float(value)
     elif key == "corner_y":
@@ -369,8 +361,6 @@ def _check_bad_fsss(bad_region, is_fsss):
     if is_fsss != bad_region["is_fsss"]:
         raise RuntimeError("You can't mix x/y and fs/ss in a bad region")
 
-    return
-
 
 def _parse_field_bad(key, value, bad):
     # type: (str, str, TypeBadRegion) -> None
@@ -406,6 +396,7 @@ def _parse_field_bad(key, value, bad):
 
 
 def _check_point(  # pylint: disable=too-many-arguments
+    panel_name,  # type: str
     panel,  # type: TypePanel
     fs_,  # type: int
     ss_,  # type: int
@@ -421,12 +412,12 @@ def _check_point(  # pylint: disable=too-many-arguments
     ry_ = (ys_ + panel["cny"]) / panel["res"]  # type: float
     dist = math.sqrt(rx_ * rx_ + ry_ * ry_)  # type: float
     if dist > max_d:
-        detector["furthest_out_panel"] = panel
+        detector["furthest_out_panel"] = panel_name
         detector["furthest_out_fs"] = fs_
         detector["furthest_out_ss"] = ss_
         max_d = dist
     elif dist < min_d:
-        detector["furthest_in_panel"] = panel
+        detector["furthest_in_panel"] = panel_name
         detector["furthest_in_fs"] = fs_
         detector["furthest_in_ss"] = ss_
         min_d = dist
@@ -439,11 +430,18 @@ def _find_min_max_d(detector):
     # Re-implementation of find_min_max_d from libcrystfel/src/detector.c.
     min_d = float("inf")  # type: float
     max_d = 0.0  # type: float
-    for panel in detector["panels"].values():
+    for panel_name, panel in viewitems(detector["panels"]):
         min_d, max_d = _check_point(
-            panel=panel, fs_=0, ss_=0, min_d=min_d, max_d=max_d, detector=detector,
+            panel_name=panel_name,
+            panel=panel,
+            fs_=0,
+            ss_=0,
+            min_d=min_d,
+            max_d=max_d,
+            detector=detector,
         )
         min_d, max_d = _check_point(
+            panel_name=panel_name,
             panel=panel,
             fs_=panel["w"],
             ss_=0,
@@ -452,6 +450,7 @@ def _find_min_max_d(detector):
             detector=detector,
         )
         min_d, max_d = _check_point(
+            panel_name=panel_name,
             panel=panel,
             fs_=0,
             ss_=panel["h"],
@@ -460,6 +459,7 @@ def _find_min_max_d(detector):
             detector=detector,
         )
         min_d, max_d = _check_point(
+            panel_name=panel_name,
             panel=panel,
             fs_=panel["w"],
             ss_=panel["h"],
@@ -476,21 +476,18 @@ def load_crystfel_geometry(
     """
     Loads a CrystFEL geometry file.
 
-    This function is a Re-implementation of the get_detector_geometry_2 function from
-    CrystFEL. It reads information from a CrystFEL geometry file.
+    This function is a re-implementation of the get_detector_geometry_2 function from
+    CrystFEL. It reads information from a CrystFEL geometry file, which uses a
+    key/value language, fully documented in the relevant
+    `man page <http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html>`_.
+    This function returns objects whose content matches CrystFEL's internal
+    representation of the information in the file (see the libcrystfel/src/detector.h
+    and the libcrystfel/src/image.c files from CrystFEL's source code for more
+    information).
 
-    For a full documentation of the CrystFEL geometry format, see the relevant `man
-    page <http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html>`_.
+    The code of this function is currently synchronized with the code of the function
+    'get_detector_geometry_2' in CrystFEL at commit cff9159b4bc6.
 
-    The function returns a dictionary with the geometry information.
-
-    * The CrystFEL geometry file uses a key/value language. The keys in the returned
-      dictionary match the keys in the geometry file.
-
-    * The dictionary values store the corresponding values.
-
-    * The code of this function is currently synchronized with the code of the function
-      'get_detector_geometry_2' in CrystFEL at commit 41a8fa9819010.
 
     Arguments:
 
@@ -498,13 +495,226 @@ def load_crystfel_geometry(
 
     Returns:
 
-        Dict[str, Any]: a dictionary with the geometry information loaded from the
-        file.
+        Tuple[TypeDetector, TypeBeam, Union[str, None]]: a tuple with the information
+        loaded from the file.
+
+        The first entry in the tuple is a dictionary storing information strictly
+        related to the detector geometry. The following is a brief description of the
+        key/value pairs in the dictionary.
+
+        **Detector-related key/pairs**
+
+            **panels** the panels in the detector. The value corresponding to this key
+            is a dictionary containing information about the panels that make up the
+            detector. In the dictionary, the keys are the panel names, and the values
+            are further dictionaries storing information about the panels.
+
+            **bad**: the bad regions in the detector. The value corresponding to this
+            key is a dictionary containing information about the bad regions in the
+            detector. In the dictionary, the keys are the bad region names, and the
+            values are further dictionaries storing information about the bad regions.
+
+            **mask_bad**: the value used in a mask to label a pixel as bad.
+
+            **mask_good**: the value used in a mask to label a pixel as good.
+
+            **rigid_groups**: the rigid groups of panels in the detector. The value
+            corresponding to this key is a dictionary containing information about the
+            rigid groups in the detector. In the dictionary, the keys are the names
+            of the rigid groups and the values are lists storing the names of the
+            panels belonging to eachgroup.
+
+            **rigid_groups_collections**: the collections of rigid groups of panels in
+            the detector. The value corresponding to this key is a dictionary
+            containing information about the rigid group collections in the detector.
+            In the dictionary, the keys are the names of the rigid group collections
+            and the values are lists storing the names of the rigid groups belonging to
+            the collections.
+
+            **furthest_out_panel**: the name of the panel where the furthest away pixel
+            from the center of the reference system can be found.
+
+            **furthest_out_fs**: the fs coordinate, within its panel, of the furthest
+            away pixel from the center of the reference system.
+
+            **furthest_out_ss**: the ss coordinate, within its panel, of the furthest
+            away pixel from the center of the reference system.
+
+            **furthest_in_panel**: the name of the panel where the closest pixel to the
+            center of the reference system can be found.
+
+            **furthest_in_fs**: the fs coordinate, within its panel, of the closest
+            pixel to the center of the reference system.
+
+            **furthest_in_ss**: the ss coordinate, within its panel, of the closest
+            pixel to the center of the reference system.
+
+        **Panel-related key/pairs**
+
+            **cnx**: the x location of the corner of the panel in the reference system.
+
+            **cny**: the y location of the corner of the panel in the reference system.
+
+            **clen**: the distance, as reported by the facility, of the sample
+            interaction point from the corner of the first pixel in the panel .
+
+            **clen_from**: the location of the clen information in a data file, in
+            case the information must be extracted from it.
+
+            **coffset**: the offset to be applied to the clen value to determine the
+            real distance of the panel from the interaction point.
+
+            **mask**: the location of the mask data for the panel in a data file.
+
+            **mask_file**: the data file in which the mask data for the panel can be
+            found.
+
+            **satmap**: the location of the per-pixel saturation map for the panel in a
+            data file.
+
+            **satmap_file**: the data file in which the per-pixel saturation map for
+            the panel can be found.
+
+            **res**: the resolution of the panel in pixels per meter.
+
+            **badrow**: the readout direction for the panel, for filtering out clusters
+            of peaks. The value corresponding to this key is either 'x' or 'y'.
+
+            **no_index**: wether the panel should be considered entirely bad. The panel
+            will be considered bad if the value corresponding to this key is non-zero.
+
+            **adu_per_photon**: the number of detector intensity units per photon for
+            the panel.
+
+            **max_adu**: the detector intensity unit value above which a pixel of the
+            panel should be considered unreliable.
+
+            **data**: the location, in a data file, of the data block where the panel
+            data is stored.
+
+            **adu_per_eV**: the number of detector intensity units per eV of photon
+            energy for the panel.
+
+            **dim_structure**: a description of the structure of the data block for the
+            panel. The value corresponding to this key is a list of strings describing
+            the meaning of each axis in the data block. See the
+            `crystfel_geometry \
+            <http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html>`_ man
+            page for a detailed explanation.
+
+            **fsx**: the fs->x component of the matrix transforming pixel indexes to
+            detector reference system coordinates.
+
+            **fsy**: the fs->y component of the matrix transforming pixel indexes to
+            detector reference system coordinates.
+
+            **fsz**: the fs->z component of the matrix transforming pixel indexes to
+            detector reference system coordinates.
+
+            **ssx**: the ss->x component of the matrix transforming pixel indexes to
+            detector reference system coordinates.
+
+            **ssy**: the ss->y component of the matrix transforming pixel indexes to
+            detector reference system coordinates.
+
+            **ssz**: the ss->z component of the matrix transforming pixel indexes to
+            detector reference system coordinates.
+
+            **rail_x**: the x component, with respect to the reference system, of the
+            direction of the rail along which the detector can be moved.
+
+            **rail_y**: the y component, with respect to the reference system, of the
+            direction of the rail along which the detector can be moved.
+
+            **rail_z**: the z component, with respect to the reference system, of the
+            direction of the rail along which the detector can be moved.
+
+            **clen_for_centering**: the value of clen at which the beam hits the
+            detector at the origin of the reference system.
+
+            **xfs**: the x->fs component of the matrix transforming detector reference
+            system coordinates to pixel indexes.
+
+            **yfs**: the y->fs component of the matrix transforming detector reference
+            system coordinates to pixel indexes.
+
+            **xss**: the x->ss component of the matrix transforming detector reference
+            system coordinates to pixel indexes.
+
+            **yss**: the y->ss component of the matrix transforming detector reference
+            system coordinates to pixel indexes.
+
+            **orig_min_fs**: the initial fs index of the location of the panel data in
+            the data block where it is stored.
+
+            **orig_max_fs**: the final fs index of the location of the panel data in
+            the data block where it is stored.
+
+            **orig_min_ss**: the initial ss index of the location of the panel data in
+            the data block where it is stored.
+
+            **orig_max_ss**: the final fs index of the location of the panel data in
+            the data block where it is stored.
+
+            **w**: the width of the panel in pixels.
+
+            **h**: the width of the panel in pixels.
+
+        **Bad region-related key/value pairs**
+
+            **panel**: the name of the panel in which the bad region lies.
+
+            **min_x**: the initial x coordinate of the bad region in the detector
+            reference system.
+
+            **max_x**: the final x coordinate of the bad region in the detector
+            referencesystem.
+
+            **min_y**: the initial y coordinate of the bad region in the detector
+            reference system.
+
+            **max_y**: the final y coordinate of the bad region in the detector
+            reference system.
+
+            **min_fs**: the initial fs index of the location of the bad region in the
+            block where the panel data is stored.
+
+            **max_fs**: the final fs index of the location of the bad region in the
+            block where the panel data is stored.
+
+            **min_ss**: the initial ss index of the location of the bad region in the
+            block where the panel data is stored.
+
+            **max_ss**: the final ss index of the location of the bad region in the
+            block where the panel data is stored.
+
+            **is_fsss**: whether the fs,ss definition of the bad region is the valid
+            one (as opposed to the x,y-based one). If the value corresponding to this
+            key is True, the fs,ss-based definition of the bad region should be
+            considered the valid one. Otherwise, the definition in x,y coordinates must
+            be honored.
+
+        The second entry in the tuple is a dictionary storing information related to
+        the beam properties. The following is a brief description of the key/value
+        pairs in the dictionary.
+
+            **photon_energy**: the photon energy of the beam in eV.
+
+            **photon_energy_from**: the location of the photon energy information in a
+            data file, in case the information must be extracted from it.
+
+            **photon_energy_scale**: the scaling factor to be applied to the photon
+            energy, in case the provided energy value is not in eV.
+
+        The third entry in the tuple is a string storing the HDF5 path where
+        information about detected Bragg peaks can be found in a data file. If the
+        CrystFEL geometry file does not provide this information, the value None is
+        returned.
     """
     beam = {
         "photon_energy": 0.0,
         "photon_energy_from": None,
-        "photon_energy_scale": 1,
+        "photon_energy_scale": 1.0,
     }  # type: TypeBeam
     detector = {
         "panels": collections.OrderedDict(),
@@ -523,47 +733,44 @@ def load_crystfel_geometry(
     default_panel = {
         "cnx": float("NaN"),
         "cny": float("NaN"),
+        "coffset": 0.0,
         "clen": float("NaN"),
         "clen_from": None,
-        "coffset": 0.0,
+        "mask": None,
+        "mask_file": None,
+        "satmap": None,
+        "satmap_file": None,
         "res": -1.0,
         "badrow": "-",
         "no_index": False,
+        "adu_per_photon": float("NaN"),
+        "max_adu": float("inf"),
+        "data": None,
+        "adu_per_eV": float("NaN"),
+        "dim_structure": [],
         "fsx": 1.0,
         "fsy": 0.0,
         "fsz": 0.0,
         "ssx": 0.0,
         "ssy": 1.0,
         "ssz": 0.0,
-        "xfs": 0.0,
-        "yfs": 1.0,
-        "xss": 1.0,
-        "yss": 0.0,
         "rail_x": float("NaN"),
         "rail_y": float("NaN"),
         "rail_z": float("NaN"),
         "clen_for_centering": float("NaN"),
+        "xfs": 0.0,
+        "yfs": 1.0,
+        "xss": 1.0,
+        "yss": 0.0,
         "orig_min_fs": -1,
         "orig_max_fs": -1,
         "orig_min_ss": -1,
         "orig_max_ss": -1,
-        "min_fs": 0,
-        "max_fs": 0,
-        "min_ss": 0,
-        "max_ss": 0,
-        "adu_per_eV": float("NaN"),
-        "adu_per_photon": float("NaN"),
-        "max_adu": float("inf"),
-        "mask": None,
-        "mask_file": None,
-        "satmap": None,
-        "satmap_file": None,
-        "data": None,
-        "dim_structure": [],
         "w": int("NaN"),
         "h": int("NaN"),
     }  # type: TypePanel
     default_bad_region = {
+        "panel": None,
         "min_x": float("NaN"),
         "max_x": float("NaN"),
         "min_y": float("NaN"),
@@ -573,7 +780,6 @@ def load_crystfel_geometry(
         "min_ss": 0,
         "max_ss": 0,
         "is_fsss": 99,
-        "panel": None,
     }  # type: TypeBadRegion
     default_dim = ["ss", "fs"]  # type: List[Union[int, str, None]]
     hdf5_peak_path = None  # type: Union[str, None]
@@ -607,17 +813,15 @@ def load_crystfel_geometry(
                         hdf5_peak_path=hdf5_peak_path,
                     )
                     continue
-                curr_bad = None  # type: Union[TypeBadRegion, None]
-                curr_panel = None  # type: Union[TypePanel, None]
                 if path[0].startswith("bad"):
                     if path[0] in detector["bad"]:
-                        curr_bad = detector["bad"][path[0]]
+                        curr_bad = detector["bad"][path[0]]  # type: TypeBadRegion
                     else:
                         curr_bad = copy.deepcopy(default_bad_region)
                         detector["bad"][path[0]] = curr_bad
                 else:
                     if path[0] in detector["panels"]:
-                        curr_panel = detector["panels"][path[0]]
+                        curr_panel = detector["panels"][path[0]]  # type: TypePanel
                     else:
                         curr_panel = copy.deepcopy(default_panel)
                         detector["panels"][path[0]] = curr_panel
@@ -808,9 +1012,9 @@ def load_crystfel_geometry(
                 panel["yss"] = panel["fsx"] / d__
             _find_min_max_d(detector)
     except (IOError, OSError) as exc:
-        exc_type, exc_value = (
-            sys.exc_info()[:2]
-        )  # type: Union[Type[BaseException], None], Union[BaseException, None]
+        exc_type, exc_value = sys.exc_info()[
+            :2
+        ]  # type: Tuple[Union[Type[BaseException], None], Union[BaseException, None]]
         raise_from(
             exc=RuntimeError(
                 "The following error occurred while reading the {0} geometry"

@@ -16,7 +16,7 @@
     <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="The named_tuples Module" href="cfelpyutils.named_tuples.html" />
+    <link rel="next" title="The peakfinding_utils Module" href="cfelpyutils.peakfinding_utils.html" />
     <link rel="prev" title="The crystfel_utils Module" href="cfelpyutils.crystfel_utils.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -40,7 +40,7 @@
 <p>This module contains functions that manipulate geometry information.</p>
 <dl class="function">
 <dt id="cfelpyutils.geometry_utils.compute_pix_maps">
-<code class="descname">compute_pix_maps</code><span class="sig-paren">(</span><em>geometry</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cfelpyutils/geometry_utils.html#compute_pix_maps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cfelpyutils.geometry_utils.compute_pix_maps" title="Permalink to this definition">¶</a></dt>
+<code class="descname">compute_pix_maps</code><span class="sig-paren">(</span><em>geometry</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.geometry_utils.compute_pix_maps" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes pixel maps from CrystFEL geometry information.</p>
 <p>This function takes as input some geometry information read from a <a class="reference external" href="http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html">CrystFEL</a> file, and
 returns a set of pre-computed pixel maps.</p>
@@ -59,10 +59,19 @@ according to the same conventions as CrystFEL:</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>geometry</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a CrystFEL geometry object (A dictionary returned by
 the <a class="reference internal" href="cfelpyutils.crystfel_utils.html#cfelpyutils.crystfel_utils.load_crystfel_geometry" title="cfelpyutils.crystfel_utils.load_crystfel_geometry"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_crystfel_geometry()</span></code></a> function).</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a named tuple storing the the
-pixel maps.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a dictionary storing the the pixel maps. The
+dictionary contains:<ul class="simple">
+<li>a key named ‘x’ whose value is a pixel map for the x coordinate.</li>
+<li>a key named ‘y’ whose value is a pixel map for the y coordinate.</li>
+<li>a key named ‘z’ whose value is a pixel map for the z coordinate.</li>
+<li>a key named ‘radius’ whose value is a pixel map  storing the distance of each
+pixel from the center of the reference system.</li>
+<li>a key named ‘phi’ whose value is a pixel map storing the amplitude of the
+angle between each pixel, the center of the reference system, and the x axis.</li>
+</ul>
+</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="cfelpyutils.named_tuples.html#cfelpyutils.named_tuples.PixelMaps" title="cfelpyutils.named_tuples.PixelMaps"><code class="xref py py-class docutils literal notranslate"><span class="pre">PixelMaps</span></code></a></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Dict[str, numpy.ndarray]</td>
 </tr>
 </tbody>
 </table>
@@ -70,7 +79,7 @@ pixel maps.</td>
 
 <dl class="function">
 <dt id="cfelpyutils.geometry_utils.compute_visualization_pix_maps">
-<code class="descname">compute_visualization_pix_maps</code><span class="sig-paren">(</span><em>geometry</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cfelpyutils/geometry_utils.html#compute_visualization_pix_maps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cfelpyutils.geometry_utils.compute_visualization_pix_maps" title="Permalink to this definition">¶</a></dt>
+<code class="descname">compute_visualization_pix_maps</code><span class="sig-paren">(</span><em>geometry</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.geometry_utils.compute_visualization_pix_maps" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes pixel maps for data visualization from CrystFEL geometry information.</p>
 <p>This function takes as input some geometry information read from a <a class="reference external" href="http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html">CrystFEL</a> file, and
 returns a set of pre-computed pixel maps that can be used to display data in an
@@ -90,9 +99,14 @@ named tuple (z, r and phi) are set to None.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>geometry</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a CrystFEL geometry object (A dictionary returned by
 the <a class="reference internal" href="cfelpyutils.crystfel_utils.html#cfelpyutils.crystfel_utils.load_crystfel_geometry" title="cfelpyutils.crystfel_utils.load_crystfel_geometry"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_crystfel_geometry()</span></code></a> function).</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a named tuple with the pixel maps.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a dictionary storing the the pixel maps. The
+dictionary contains:<ul class="simple">
+<li>a key named ‘x’ whose value is a pixel map for the x coordinate.</li>
+<li>a key named ‘y’ whose value is a pixel map for the y coordinate.</li>
+</ul>
+</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">PixelMaps</span></code></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Dict[str, numpy.ndarray]</td>
 </tr>
 </tbody>
 </table>
@@ -100,7 +114,7 @@ the <a class="reference internal" href="cfelpyutils.crystfel_utils.html#cfelpyut
 
 <dl class="function">
 <dt id="cfelpyutils.geometry_utils.apply_geometry_to_data">
-<code class="descname">apply_geometry_to_data</code><span class="sig-paren">(</span><em>data</em>, <em>geometry</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cfelpyutils/geometry_utils.html#apply_geometry_to_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cfelpyutils.geometry_utils.apply_geometry_to_data" title="Permalink to this definition">¶</a></dt>
+<code class="descname">apply_geometry_to_data</code><span class="sig-paren">(</span><em>data</em>, <em>geometry</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.geometry_utils.apply_geometry_to_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Applies CrystFEL geometry information to some data.</p>
 <p>This function takes as input some geometry information read from a <a class="reference external" href="http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html">CrystFEL</a> file, and
 some data on which to apply the information. It returns an array that can be
@@ -156,9 +170,10 @@ applied.</p>
 <h3>Navigation</h3>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="cfelpyutils.html">The cfelpyutils Package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="cfelpyutils.calibration_utils.html">calibration_utils</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cfelpyutils.crystfel_utils.html">crystfel_utils</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">geometry_utils</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cfelpyutils.named_tuples.html">named_tuples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cfelpyutils.peakfinding_utils.html">peakfinding_utils</a></li>
 </ul>
 </li>
 </ul>
@@ -169,7 +184,7 @@ applied.</p>
   <li><a href="index.html">Documentation overview</a><ul>
   <li><a href="cfelpyutils.html">The cfelpyutils Package</a><ul>
       <li>Previous: <a href="cfelpyutils.crystfel_utils.html" title="previous chapter">The crystfel_utils Module</a></li>
-      <li>Next: <a href="cfelpyutils.named_tuples.html" title="next chapter">The named_tuples Module</a></li>
+      <li>Next: <a href="cfelpyutils.peakfinding_utils.html" title="next chapter">The peakfinding_utils Module</a></li>
   </ul></li>
   </ul></li>
 </ul>

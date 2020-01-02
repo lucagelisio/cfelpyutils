@@ -53,13 +53,26 @@ def compute_pix_maps(geometry):
 
     Returns:
 
-        Dict[str, numpy.ndarray]:: a dictionary storing the the pixel maps.
+        Dict[str, numpy.ndarray]: a dictionary storing the the pixel maps. The
+        dictionary contains:
+
+        * a key named 'x' whose value is a pixel map for the x coordinate.
+
+        * a key named 'y' whose value is a pixel map for the y coordinate.
+
+        * a key named 'z' whose value is a pixel map for the z coordinate.
+
+        * a key named 'radius' whose value is a pixel map  storing the distance of each
+          pixel from the center of the reference system.
+
+        * a key named 'phi' whose value is a pixel map storing the amplitude of the
+          angle between each pixel, the center of the reference system, and the x axis.
     """
     max_fs_in_slab = numpy.array(
-        [geometry["panels"][k]["max_fs"] for k in geometry["panels"]]
+        [geometry["panels"][k]["orig_max_fs"] for k in geometry["panels"]]
     ).max()  # type: int
     max_ss_in_slab = numpy.array(
-        [geometry["panels"][k]["max_ss"] for k in geometry["panels"]]
+        [geometry["panels"][k]["orig_max_ss"] for k in geometry["panels"]]
     ).max()  # type: int
 
     x_map = numpy.zeros(
@@ -83,13 +96,13 @@ def compute_pix_maps(geometry):
 
         ss_grid, fs_grid = numpy.meshgrid(
             numpy.arange(
-                geometry["panels"][pan]["max_ss"]
-                - geometry["panels"][pan]["min_ss"]
+                geometry["panels"][pan]["orig_max_ss"]
+                - geometry["panels"][pan]["orig_min_ss"]
                 + 1
             ),
             numpy.arange(
-                geometry["panels"][pan]["max_fs"]
-                - geometry["panels"][pan]["min_fs"]
+                geometry["panels"][pan]["orig_max_fs"]
+                - geometry["panels"][pan]["orig_min_fs"]
                 + 1
             ),
             indexing="ij",
@@ -105,16 +118,34 @@ def compute_pix_maps(geometry):
             + geometry["panels"][pan]["cnx"]
         )  # type: numpy.ndarray
         x_map[
-            geometry["panels"][pan]["min_ss"] : geometry["panels"][pan]["max_ss"] + 1,
-            geometry["panels"][pan]["min_fs"] : geometry["panels"][pan]["max_fs"] + 1,
+            geometry["panels"][pan]["orig_min_ss"] : geometry["panels"][pan][
+                "orig_max_ss"
+            ]
+            + 1,
+            geometry["panels"][pan]["orig_min_fs"] : geometry["panels"][pan][
+                "orig_max_fs"
+            ]
+            + 1,
         ] = x_panel
         y_map[
-            geometry["panels"][pan]["min_ss"] : geometry["panels"][pan]["max_ss"] + 1,
-            geometry["panels"][pan]["min_fs"] : geometry["panels"][pan]["max_fs"] + 1,
+            geometry["panels"][pan]["orig_min_ss"] : geometry["panels"][pan][
+                "orig_max_ss"
+            ]
+            + 1,
+            geometry["panels"][pan]["orig_min_fs"] : geometry["panels"][pan][
+                "orig_max_fs"
+            ]
+            + 1,
         ] = y_panel
         z_map[
-            geometry["panels"][pan]["min_ss"] : geometry["panels"][pan]["max_ss"] + 1,
-            geometry["panels"][pan]["min_fs"] : geometry["panels"][pan]["max_fs"] + 1,
+            geometry["panels"][pan]["orig_min_ss"] : geometry["panels"][pan][
+                "orig_max_ss"
+            ]
+            + 1,
+            geometry["panels"][pan]["orig_min_fs"] : geometry["panels"][pan][
+                "orig_max_fs"
+            ]
+            + 1,
         ] = first_panel_camera_length
 
     r_map = numpy.sqrt(numpy.square(x_map) + numpy.square(y_map))  # type: numpy.ndarray
@@ -155,7 +186,12 @@ def compute_visualization_pix_maps(geometry):
 
     Returns:
 
-        :class:`PixelMaps`: a named tuple with the pixel maps.
+        Dict[str, numpy.ndarray]: a dictionary storing the the pixel maps. The
+        dictionary contains:
+
+        * a key named 'x' whose value is a pixel map for the x coordinate.
+
+        * a key named 'y' whose value is a pixel map for the y coordinate.
     """
     # Shifts the origin of the reference system from the beam position to the top-left
     # of the image that will be displayed. Computes the size of the array needed to

@@ -53,17 +53,16 @@
 
 <span class="sd">This module contains functions that manipulate geometry information.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>  <span class="c1"># pylint: disable=unused-import</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>  <span class="c1"># pylint: disable=unused-import</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span>
-
-<span class="kn">from</span> <span class="nn">cfelpyutils</span> <span class="k">import</span> <span class="n">named_tuples</span>
+<span class="kn">import</span> <span class="nn">numpy</span>  <span class="c1"># type: ignore</span>
+<span class="kn">from</span> <span class="nn">cfelpyutils.crystfel_utils</span> <span class="kn">import</span> <span class="n">TypeDetector</span>  <span class="c1"># pylint: disable=unused-import</span>
 
 
 <div class="viewcode-block" id="compute_pix_maps"><a class="viewcode-back" href="../../cfelpyutils.geometry_utils.html#cfelpyutils.geometry_utils.compute_pix_maps">[docs]</a><span class="k">def</span> <span class="nf">compute_pix_maps</span><span class="p">(</span><span class="n">geometry</span><span class="p">):</span>
-    <span class="c1"># type: (Dict[str, Any]) -&gt; PixelMaps</span>
+    <span class="c1"># type: (TypeDetector) -&gt; Dict[str, numpy.ndarray]</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes pixel maps from CrystFEL geometry information.</span>
 
@@ -89,35 +88,46 @@
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        :class:`~cfelpyutils.named_tuples.PixelMaps`: a named tuple storing the the</span>
-<span class="sd">        pixel maps.</span>
+<span class="sd">        Dict[str, numpy.ndarray]: a dictionary storing the the pixel maps. The</span>
+<span class="sd">        dictionary contains:</span>
+
+<span class="sd">        * a key named &#39;x&#39; whose value is a pixel map for the x coordinate.</span>
+
+<span class="sd">        * a key named &#39;y&#39; whose value is a pixel map for the y coordinate.</span>
+
+<span class="sd">        * a key named &#39;z&#39; whose value is a pixel map for the z coordinate.</span>
+
+<span class="sd">        * a key named &#39;radius&#39; whose value is a pixel map  storing the distance of each</span>
+<span class="sd">          pixel from the center of the reference system.</span>
+
+<span class="sd">        * a key named &#39;phi&#39; whose value is a pixel map storing the amplitude of the</span>
+<span class="sd">          angle between each pixel, the center of the reference system, and the x axis.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">max_fs_in_slab</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
         <span class="p">[</span><span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;max_fs&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]]</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>  <span class="c1"># type: int</span>
     <span class="n">max_ss_in_slab</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
         <span class="p">[</span><span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;max_ss&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]]</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>  <span class="c1"># type: int</span>
 
     <span class="n">x_map</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
         <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">max_ss_in_slab</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">max_fs_in_slab</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">float32</span>
-    <span class="p">)</span>
+    <span class="p">)</span>  <span class="c1"># type: numpy.ndarray</span>
     <span class="n">y_map</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
         <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">max_ss_in_slab</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">max_fs_in_slab</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">float32</span>
-    <span class="p">)</span>
+    <span class="p">)</span>  <span class="c1"># type: numpy.ndarray</span>
     <span class="n">z_map</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
         <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">max_ss_in_slab</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">max_fs_in_slab</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">float32</span>
-    <span class="p">)</span>
+    <span class="p">)</span>  <span class="c1"># type: numpy.ndarray</span>
 
     <span class="c1"># Iterates over the panels. For each panel, determines the pixel indices, then</span>
     <span class="c1"># computes the x,y vectors. Finally, copies the panel pixel maps into the</span>
     <span class="c1"># detector-wide pixel maps.</span>
     <span class="k">for</span> <span class="n">pan</span> <span class="ow">in</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]:</span>
-
         <span class="k">if</span> <span class="s2">&quot;clen&quot;</span> <span class="ow">in</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">pan</span><span class="p">]:</span>
-            <span class="n">pan_clen</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">pan</span><span class="p">][</span><span class="s2">&quot;clen&quot;</span><span class="p">]</span>
+            <span class="n">first_panel_camera_length</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">pan</span><span class="p">][</span><span class="s2">&quot;clen&quot;</span><span class="p">]</span>  <span class="c1"># type: float</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">pan_clen</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">first_panel_camera_length</span> <span class="o">=</span> <span class="mf">0.0</span>
 
         <span class="n">ss_grid</span><span class="p">,</span> <span class="n">fs_grid</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span>
             <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
@@ -131,17 +141,17 @@
                 <span class="o">+</span> <span class="mi">1</span>
             <span class="p">),</span>
             <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="p">)</span>  <span class="c1"># type: numpy.ndarray, numpy.ndarray</span>
         <span class="n">y_panel</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">ss_grid</span> <span class="o">*</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">pan</span><span class="p">][</span><span class="s2">&quot;ssy&quot;</span><span class="p">]</span>
             <span class="o">+</span> <span class="n">fs_grid</span> <span class="o">*</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">pan</span><span class="p">][</span><span class="s2">&quot;fsy&quot;</span><span class="p">]</span>
             <span class="o">+</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">pan</span><span class="p">][</span><span class="s2">&quot;cny&quot;</span><span class="p">]</span>
-        <span class="p">)</span>
+        <span class="p">)</span>  <span class="c1"># type: numpy.ndarray</span>
         <span class="n">x_panel</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">ss_grid</span> <span class="o">*</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">pan</span><span class="p">][</span><span class="s2">&quot;ssx&quot;</span><span class="p">]</span>
             <span class="o">+</span> <span class="n">fs_grid</span> <span class="o">*</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">pan</span><span class="p">][</span><span class="s2">&quot;fsx&quot;</span><span class="p">]</span>
             <span class="o">+</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">pan</span><span class="p">][</span><span class="s2">&quot;cnx&quot;</span><span class="p">]</span>
-        <span class="p">)</span>
+        <span class="p">)</span>  <span class="c1"># type: numpy.ndarray</span>
         <span class="n">x_map</span><span class="p">[</span>
             <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">pan</span><span class="p">][</span><span class="s2">&quot;min_ss&quot;</span><span class="p">]</span> <span class="p">:</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">pan</span><span class="p">][</span><span class="s2">&quot;max_ss&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
             <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">pan</span><span class="p">][</span><span class="s2">&quot;min_fs&quot;</span><span class="p">]</span> <span class="p">:</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">pan</span><span class="p">][</span><span class="s2">&quot;max_fs&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
@@ -153,16 +163,22 @@
         <span class="n">z_map</span><span class="p">[</span>
             <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">pan</span><span class="p">][</span><span class="s2">&quot;min_ss&quot;</span><span class="p">]</span> <span class="p">:</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">pan</span><span class="p">][</span><span class="s2">&quot;max_ss&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
             <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">pan</span><span class="p">][</span><span class="s2">&quot;min_fs&quot;</span><span class="p">]</span> <span class="p">:</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">pan</span><span class="p">][</span><span class="s2">&quot;max_fs&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="p">]</span> <span class="o">=</span> <span class="n">pan_clen</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="n">first_panel_camera_length</span>
 
-    <span class="n">r_map</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x_map</span><span class="p">)</span> <span class="o">+</span> <span class="n">numpy</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">y_map</span><span class="p">))</span>
-    <span class="n">phi_map</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">y_map</span><span class="p">,</span> <span class="n">x_map</span><span class="p">)</span>
+    <span class="n">r_map</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x_map</span><span class="p">)</span> <span class="o">+</span> <span class="n">numpy</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">y_map</span><span class="p">))</span>  <span class="c1"># type: numpy.ndarray</span>
+    <span class="n">phi_map</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">y_map</span><span class="p">,</span> <span class="n">x_map</span><span class="p">)</span>  <span class="c1"># type: numpy.ndarray</span>
 
-    <span class="k">return</span> <span class="n">named_tuples</span><span class="o">.</span><span class="n">PixelMaps</span><span class="p">(</span><span class="n">x_map</span><span class="p">,</span> <span class="n">y_map</span><span class="p">,</span> <span class="n">z_map</span><span class="p">,</span> <span class="n">r_map</span><span class="p">,</span> <span class="n">phi_map</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">x_map</span><span class="p">,</span>
+        <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">y_map</span><span class="p">,</span>
+        <span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="n">z_map</span><span class="p">,</span>
+        <span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="n">r_map</span><span class="p">,</span>
+        <span class="s2">&quot;phi&quot;</span><span class="p">:</span> <span class="n">phi_map</span><span class="p">,</span>
+    <span class="p">}</span></div>
 
 
 <div class="viewcode-block" id="compute_visualization_pix_maps"><a class="viewcode-back" href="../../cfelpyutils.geometry_utils.html#cfelpyutils.geometry_utils.compute_visualization_pix_maps">[docs]</a><span class="k">def</span> <span class="nf">compute_visualization_pix_maps</span><span class="p">(</span><span class="n">geometry</span><span class="p">):</span>
-    <span class="c1"># type: (Dict[str, Any]) -&gt; PixelMaps</span>
+    <span class="c1"># type: (TypeDetector) -&gt; Dict[str, numpy.ndarray]</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes pixel maps for data visualization from CrystFEL geometry information.</span>
 
@@ -187,28 +203,40 @@
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        :class:`PixelMaps`: a named tuple with the pixel maps.</span>
+<span class="sd">        Dict[str, numpy.ndarray]: a dictionary storing the the pixel maps. The</span>
+<span class="sd">        dictionary contains:</span>
+
+<span class="sd">        * a key named &#39;x&#39; whose value is a pixel map for the x coordinate.</span>
+
+<span class="sd">        * a key named &#39;y&#39; whose value is a pixel map for the y coordinate.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Shifts the origin of the reference system from the beam position to the top-left</span>
     <span class="c1"># of the image that will be displayed. Computes the size of the array needed to</span>
     <span class="c1"># display the data, then use this information to estimate the magnitude of the</span>
     <span class="c1"># shift.</span>
-    <span class="n">pixel_maps</span> <span class="o">=</span> <span class="n">compute_pix_maps</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
-    <span class="n">x_map</span><span class="p">,</span> <span class="n">y_map</span> <span class="o">=</span> <span class="n">pixel_maps</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">pixel_maps</span><span class="o">.</span><span class="n">y</span>
-    <span class="n">y_minimum</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">y_map</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y_map</span><span class="o">.</span><span class="n">min</span><span class="p">())))</span> <span class="o">+</span> <span class="mi">2</span>
-    <span class="n">x_minimum</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x_map</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x_map</span><span class="o">.</span><span class="n">min</span><span class="p">())))</span> <span class="o">+</span> <span class="mi">2</span>
-    <span class="n">min_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_minimum</span><span class="p">,</span> <span class="n">x_minimum</span><span class="p">)</span>
+    <span class="n">pixel_maps</span> <span class="o">=</span> <span class="n">compute_pix_maps</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>  <span class="c1"># type: Dict[str, numpy.ndarray]</span>
+    <span class="n">x_map</span><span class="p">,</span> <span class="n">y_map</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">pixel_maps</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span>
+        <span class="n">pixel_maps</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">],</span>
+    <span class="p">)</span>  <span class="c1"># type: numpy.ndarray, numpy.ndarray</span>
+    <span class="n">y_minimum</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">y_map</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y_map</span><span class="o">.</span><span class="n">min</span><span class="p">())))</span> <span class="o">+</span> <span class="mi">2</span>  <span class="c1"># type: int</span>
+    <span class="n">x_minimum</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x_map</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x_map</span><span class="o">.</span><span class="n">min</span><span class="p">())))</span> <span class="o">+</span> <span class="mi">2</span>  <span class="c1"># type: int</span>
+    <span class="n">min_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_minimum</span><span class="p">,</span> <span class="n">x_minimum</span><span class="p">)</span>  <span class="c1"># type: Tuple[int, int]</span>
     <span class="n">new_x_map</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">object</span><span class="o">=</span><span class="n">pixel_maps</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int</span><span class="p">)</span> <span class="o">+</span> <span class="n">min_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span>
-    <span class="p">)</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">object</span><span class="o">=</span><span class="n">pixel_maps</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int</span><span class="p">)</span> <span class="o">+</span> <span class="n">min_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="p">)</span>  <span class="c1"># type: numpy.ndarray</span>
     <span class="n">new_y_map</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">object</span><span class="o">=</span><span class="n">pixel_maps</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int</span><span class="p">)</span> <span class="o">+</span> <span class="n">min_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="n">named_tuples</span><span class="o">.</span><span class="n">PixelMaps</span><span class="p">(</span><span class="n">new_x_map</span><span class="p">,</span> <span class="n">new_y_map</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">object</span><span class="o">=</span><span class="n">pixel_maps</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int</span><span class="p">)</span> <span class="o">+</span> <span class="n">min_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="p">)</span>  <span class="c1"># type: numpy.ndarray</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">new_x_map</span><span class="p">,</span>
+        <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">new_y_map</span><span class="p">,</span>
+    <span class="p">}</span></div>
 
 
 <div class="viewcode-block" id="apply_geometry_to_data"><a class="viewcode-back" href="../../cfelpyutils.geometry_utils.html#cfelpyutils.geometry_utils.apply_geometry_to_data">[docs]</a><span class="k">def</span> <span class="nf">apply_geometry_to_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">geometry</span><span class="p">):</span>
-    <span class="c1"># type: (numpy.ndarray, Dict[str, Any]) -&gt; numpy.ndarray</span>
+    <span class="c1"># type: (numpy.ndarray, TypeDetector) -&gt; numpy.ndarray</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Applies CrystFEL geometry information to some data.</span>
 
@@ -239,16 +267,22 @@
 <span class="sd">        numpy.ndarray: an array containing the data with the geometry information</span>
 <span class="sd">        applied.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">pixel_maps</span> <span class="o">=</span> <span class="n">compute_pix_maps</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
-    <span class="n">x_map</span><span class="p">,</span> <span class="n">y_map</span> <span class="o">=</span> <span class="n">pixel_maps</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">pixel_maps</span><span class="o">.</span><span class="n">y</span>
-    <span class="n">y_minimum</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">y_map</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y_map</span><span class="o">.</span><span class="n">min</span><span class="p">())))</span> <span class="o">+</span> <span class="mi">2</span>
-    <span class="n">x_minimum</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x_map</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x_map</span><span class="o">.</span><span class="n">min</span><span class="p">())))</span> <span class="o">+</span> <span class="mi">2</span>
-    <span class="n">min_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_minimum</span><span class="p">,</span> <span class="n">x_minimum</span><span class="p">)</span>
-    <span class="n">visualization_array</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">min_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-    <span class="n">visual_pixel_maps</span> <span class="o">=</span> <span class="n">compute_visualization_pix_maps</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
+    <span class="n">pixel_maps</span> <span class="o">=</span> <span class="n">compute_pix_maps</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>  <span class="c1"># type: Dict[str, numpy.ndarray]</span>
+    <span class="n">x_map</span><span class="p">,</span> <span class="n">y_map</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">pixel_maps</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span>
+        <span class="n">pixel_maps</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">],</span>
+    <span class="p">)</span>  <span class="c1"># type: numpy.ndarray, numpy.ndarray</span>
+    <span class="n">y_minimum</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">y_map</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y_map</span><span class="o">.</span><span class="n">min</span><span class="p">())))</span> <span class="o">+</span> <span class="mi">2</span>  <span class="c1"># type: int</span>
+    <span class="n">x_minimum</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x_map</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x_map</span><span class="o">.</span><span class="n">min</span><span class="p">())))</span> <span class="o">+</span> <span class="mi">2</span>  <span class="c1"># type: int</span>
+    <span class="n">min_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_minimum</span><span class="p">,</span> <span class="n">x_minimum</span><span class="p">)</span>  <span class="c1"># type: Tuple[int, int]</span>
+    <span class="n">visualization_array</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">min_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>  <span class="c1"># type: numpy.ndarray</span>
+    <span class="n">visual_pixel_maps</span> <span class="o">=</span> <span class="n">compute_visualization_pix_maps</span><span class="p">(</span>
+        <span class="n">geometry</span>
+    <span class="p">)</span>  <span class="c1"># type: Dict[str, numpy.ndarray]</span>
     <span class="n">visualization_array</span><span class="p">[</span>
-        <span class="n">visual_pixel_maps</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">visual_pixel_maps</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">visual_pixel_maps</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">visual_pixel_maps</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
     <span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">visualization_array</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">visualization_array</span></div>
 </pre></div>
 

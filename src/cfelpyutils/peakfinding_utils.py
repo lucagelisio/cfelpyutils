@@ -16,8 +16,7 @@
 """
 Algorithms for detection of peaks in detector frame data.
 
-This module contains algorithms that carry out Bragg peak finding on detector frame
-data from crystallography experiments.
+This module contains algorithms that detect Bragg peaks in detector frame data.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -39,7 +38,9 @@ TypePeakList = TypedDict(  # pylint: disable=invalid-name
 )
 
 
-class Peakfinder8PeakDetection(object):
+class Peakfinder8PeakDetection(
+    object
+):  # pylint: disable=useless-object-inheritance, too-few-public-methods
     """
     See documentation of the '__init__' function.
     """
@@ -67,8 +68,8 @@ class Peakfinder8PeakDetection(object):
         Peakfinder8 algorithm for peak detection.
 
         This class stores the parameters needed by the 'peakfinder8' algorithm, and
-        performs peak finding on a detector data frame upon request. The 'peakfinder8'
-        algorithm is described in the following publication:
+        detect peaks in a detector data frame upon request. The 'peakfinder8' algorithm
+        is described in the following publication:
 
         A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon, T. A. White,
         and H. N. Chapman, "Cheetah: software for high-throughput reduction and
@@ -193,18 +194,17 @@ class Peakfinder8PeakDetection(object):
 
         Returns:
 
-            Dict[str, Any]": a dictionary with information about Bragg peaks found in a
-            detector data frame (list of peaks). The dictionary has the following
-            keys:
+            TypePeakList: a dictionary with information about the Bragg peaks
+            detected in a data frame. The dictionary has the following keys:
 
-            - A key name "num_peaks" whose value is the number of peaks that were
-              found in the detector data frame.
+            - A key named "num_peaks" whose value is the number of peaks that were
+              detected in the data frame.
 
             - A key named 'fs' whose value is a list of fractional fs indexes locating
-              the detected peaks in the detector data frame.
+              the detected peaks in the data frame.
 
             - A key named 'ss' whose value is a list of fractional ss indexes locating
-              the detected peaks in the detector data frame.
+              the detected peaks in the data frame.
 
             - A key named 'intensity' whose value is a list of integrated intensities
               for the detected peaks.

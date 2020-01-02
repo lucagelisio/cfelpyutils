@@ -5,3 +5,4 @@ The crystfel\_utils Module
     :members:
     :undoc-members:
     :show-inheritance:
+    :exclude-members: TypeBeam, TypePanel, TypeBadRegion, TypeDetector

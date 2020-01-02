@@ -19,6 +19,6 @@ help:
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 docs:
-	@make html
+	@PYTHONPATH=../src:$PYTHONPATH make html
 	@rm -fr ../docs/html*
 	@cp -a _build/html/. ../docs/html

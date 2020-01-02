@@ -1,0 +1,214 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>The calibration_utils Module &#8212; CFELPyUtils 1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The crystfel_utils Module" href="cfelpyutils.crystfel_utils.html" />
+    <link rel="prev" title="The cfelpyutils Package" href="cfelpyutils.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-cfelpyutils.calibration_utils">
+<span id="the-calibration-utils-module"></span><h1>The calibration_utils Module<a class="headerlink" href="#module-cfelpyutils.calibration_utils" title="Permalink to this headline">¶</a></h1>
+<p>Calibration utilities.</p>
+<p>This module contains classes and functions that are used to calibrate detector data
+frames (i.e., to apply corrections for artifacts caused by the design and operation of
+the detector, not by any specific experimental condition).</p>
+<dl class="class">
+<dt id="cfelpyutils.calibration_utils.Agipd1MCalibration">
+<em class="property">class </em><code class="descname">Agipd1MCalibration</code><span class="sig-paren">(</span><em>calibration_filename</em>, <em>cellid_list</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.calibration_utils.Agipd1MCalibration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Calibration of the AGIPD 1M detector.</p>
+<p>This class stores the calibration parameters for an AGIPD 1M detector and
+applies the calibration to a detector data frame upon request. Since the the
+full set of correction parameters for the AGIPD 1M detector takes up a lot of
+memory, only the parameters needed to correct frames originating from a subset
+of cells are loaded and stored. The subset of cells is chosen when the class is
+instantiated, via the <em>cellid_list</em> parameter. It will then be possible to
+apply the correction only on detector frames originating from the chosen set of
+cells.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>calibration_filename</strong> (<em>str</em>) – <p>the absolute or relative path to an HDF5 file
+with the calibration parameters. The following data blocks should be
+present in the file:</p>
+<ul>
+<li><em>/AnalogOffset</em>: a data block storing the offset coefficients for all
+pixels, cells and gain stages.</li>
+<li><em>/DigitalGainLevel</em>: a data block storing the information needed to
+determine the gain state of each pixel and cell.</li>
+<li><em>/RelativeGain</em>: a data block storing the gain coefficients for all
+pixels, cells and gain stages.</li>
+<li><em>/DetectorMask</em>: a data block storing a mask that should be applied to
+each data frame. The pixels in the mask must have a value of either
+0, meaning that the corresponding pixel in the data frame should be
+set to 0, or 1, meaning that the value of the corresponding pixel
+must be left alone.</li>
+</ul>
+<p>The <em>/AnalogOffset</em>, <em>/DigitalGainLevel</em>, <em>/RelativeGain</em> data blocks
+must have an internal structure organized according to the following
+axis layout:</p>
+<ul>
+<li><em>axis 0</em>: the three gain stages</li>
+<li><em>axis 1</em>: the cell number</li>
+<li><em>axis 2</em>: the ss coordinate of the 16 detector modules, seen as one
+big surface, stacked from module 0 to 15 along the longest edge,
+with the shortest edges touching.</li>
+<li><em>axis 3</em>: the fs coordinate of the 16 detector modules, seen as one
+big surface, stacked from module 0 to 15 along the longest edge
+with the shortest edges touching.</li>
+</ul>
+</li>
+<li><strong>cellid_list</strong> (<em>Tuple</em><em>[</em><em>int</em><em>]</em>) – the list of cells for which the correction
+parameters should be loaded and stored.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="cfelpyutils.calibration_utils.Agipd1MCalibration.apply_calibration">
+<code class="descname">apply_calibration</code><span class="sig-paren">(</span><em>data_and_calibration_info</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.calibration_utils.Agipd1MCalibration.apply_calibration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies the calibration to a detector data frame.</p>
+<p>This function determines the gain stage of each pixel in the data frame, and
+applies the relevant gain and offset corrections.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>(</strong><strong>Dict</strong><strong>[</strong><strong>str</strong><strong>, </strong><strong>Any</strong><strong>]</strong> (<em>data_and_calibration_info</em>) – <p>a dictionary containing the data
+frame to calibrate, and some additional necessary information. The
+dictionary should contain the following entries:</p>
+<ul class="simple">
+<li>An entry with key ‘data’, whose value is the detector data frame to
+calibrate.</li>
+<li>An entry with key ‘info’, whose value is a nested dictionary with the
+following keys:<ul>
+<li>A key called ‘gain’ whose value is a numpy array of the same shape
+as the data frame to calibrate. Each pixel in this array must
+contain the information needed to determine the gain stage of the
+corresponding pixel in the data frame.</li>
+<li>A key called ‘cell’, whose value is the cell number from which the
+frame to calibrate originates.</li>
+</ul>
+</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the corrected data frame.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">numpy.ndarray</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">CFELPyUtils</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="cfelpyutils.html">The cfelpyutils Package</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">calibration_utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cfelpyutils.crystfel_utils.html">crystfel_utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cfelpyutils.geometry_utils.html">geometry_utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cfelpyutils.peakfinding_utils.html">peakfinding_utils</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="cfelpyutils.html">The cfelpyutils Package</a><ul>
+      <li>Previous: <a href="cfelpyutils.html" title="previous chapter">The cfelpyutils Package</a></li>
+      <li>Next: <a href="cfelpyutils.crystfel_utils.html" title="next chapter">The crystfel_utils Module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, OnDA Team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -51,24 +51,120 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">CrystFEL utilities.</span>
 
-<span class="sd">This module contains Python reimplementations of some functions from the `CrystFEL</span>
+<span class="sd">This module contains Python re-implementations of some functions from the `CrystFEL</span>
 <span class="sd">&lt;http://www.desy.de/~twhite/crystfel&gt;`_ software package.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 
 <span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span>  <span class="c1"># pylint: disable=unused-import</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Union</span>  <span class="c1"># pylint: disable=unused-import</span>
 
-<span class="kn">from</span> <span class="nn">future.utils</span> <span class="k">import</span> <span class="n">viewitems</span>
+<span class="kn">from</span> <span class="nn">future.utils</span> <span class="kn">import</span> <span class="n">raise_from</span><span class="p">,</span> <span class="n">viewitems</span>  <span class="c1"># type: ignore</span>
+<span class="kn">from</span> <span class="nn">mypy_extensions</span> <span class="kn">import</span> <span class="n">TypedDict</span>
+
+
+<span class="n">TypeBeam</span> <span class="o">=</span> <span class="n">TypedDict</span><span class="p">(</span>  <span class="c1"># pylint: disable=invalid-name</span>
+    <span class="s2">&quot;TypeBeam&quot;</span><span class="p">,</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;photon_energy&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;photon_energy_from&quot;</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+        <span class="s2">&quot;photon_energy_scale&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="n">total</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="n">TypePanel</span> <span class="o">=</span> <span class="n">TypedDict</span><span class="p">(</span>  <span class="c1"># pylint: disable=invalid-name</span>
+    <span class="s2">&quot;TypePanel&quot;</span><span class="p">,</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;cnx&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;cny&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;coffset&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;clen&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;clen_from&quot;</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+        <span class="s2">&quot;mask&quot;</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+        <span class="s2">&quot;mask_file&quot;</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+        <span class="s2">&quot;satmap&quot;</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+        <span class="s2">&quot;satmap_file&quot;</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+        <span class="s2">&quot;res&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;badrow&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s2">&quot;no_index&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="s2">&quot;adu_per_photon&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;max_adu&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+        <span class="s2">&quot;adu_per_eV&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;dim_structure&quot;</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]],</span>
+        <span class="s2">&quot;fsx&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;fsy&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;fsz&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;ssx&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;ssy&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;ssz&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;rail_x&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;rail_y&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;rail_z&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;clen_for_centering&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;xfs&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;yfs&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;xss&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;yss&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;orig_min_fs&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;orig_max_fs&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;orig_min_ss&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;orig_max_ss&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;w&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="n">total</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">TypeBadRegion</span> <span class="o">=</span> <span class="n">TypedDict</span><span class="p">(</span>  <span class="c1"># pylint: disable=invalid-name</span>
+    <span class="s2">&quot;TypeBadRegion&quot;</span><span class="p">,</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;panel&quot;</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+        <span class="s2">&quot;min_x&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;max_x&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;min_y&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;max_y&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;min_fs&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;max_fs&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;min_ss&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;max_ss&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;is_fsss&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="n">total</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">TypeDetector</span> <span class="o">=</span> <span class="n">TypedDict</span><span class="p">(</span>  <span class="c1"># pylint: disable=invalid-name</span>
+    <span class="s2">&quot;TypeDetector&quot;</span><span class="p">,</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;panels&quot;</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TypePanel</span><span class="p">],</span>
+        <span class="s2">&quot;bad&quot;</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TypeBadRegion</span><span class="p">],</span>
+        <span class="s2">&quot;mask_good&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;mask_bad&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;rigid_groups&quot;</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
+        <span class="s2">&quot;rigid_group_collections&quot;</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
+        <span class="s2">&quot;furthest_out_panel&quot;</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+        <span class="s2">&quot;furthest_out_fs&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;furthest_out_ss&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;furthest_in_panel&quot;</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+        <span class="s2">&quot;furthest_in_fs&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;furthest_in_ss&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="n">total</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_assplode_algebraic</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
     <span class="c1"># type: (str) -&gt; List[str]</span>
-    <span class="c1"># Reimplementation of assplode_algegraic from libcrystfel/src/detector.c.</span>
-    <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;([+-])&quot;</span><span class="p">,</span> <span class="n">string</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">if</span> <span class="n">item</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">]</span>
+    <span class="c1"># Re-implementation of assplode_algegraic from libcrystfel/src/detector.c.</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;([+-])&quot;</span><span class="p">,</span> <span class="n">string</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">if</span> <span class="n">item</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span>
+    <span class="p">]</span>  <span class="c1"># type: List[str]</span>
     <span class="k">if</span> <span class="n">items</span> <span class="ow">and</span> <span class="n">items</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">):</span>
         <span class="n">items</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">items</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">items</span><span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">),</span> <span class="mi">2</span><span class="p">)]</span>
@@ -76,14 +172,18 @@
 
 <span class="k">def</span> <span class="nf">_dir_conv</span><span class="p">(</span><span class="n">direction_x</span><span class="p">,</span> <span class="n">direction_y</span><span class="p">,</span> <span class="n">direction_z</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
     <span class="c1"># type: (float, float, float, str) -&gt; List[float]</span>
-    <span class="c1"># Reimplementation of dir_conv from libcrystfel/src/detector.c.</span>
-    <span class="n">direction</span> <span class="o">=</span> <span class="p">[</span><span class="n">direction_x</span><span class="p">,</span> <span class="n">direction_y</span><span class="p">,</span> <span class="n">direction_z</span><span class="p">]</span>
+    <span class="c1"># Re-implementation of dir_conv from libcrystfel/src/detector.c.</span>
+    <span class="n">direction</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">direction_x</span><span class="p">,</span>
+        <span class="n">direction_y</span><span class="p">,</span>
+        <span class="n">direction_z</span><span class="p">,</span>
+    <span class="p">]</span>  <span class="c1"># type: List[float]</span>
     <span class="n">items</span> <span class="o">=</span> <span class="n">_assplode_algebraic</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">items</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Invalid direction: </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
-        <span class="n">axis</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">axis</span> <span class="o">!=</span> <span class="s2">&quot;x&quot;</span> <span class="ow">and</span> <span class="n">axis</span> <span class="o">!=</span> <span class="s2">&quot;y&quot;</span> <span class="ow">and</span> <span class="n">axis</span> <span class="o">!=</span> <span class="s2">&quot;z&quot;</span><span class="p">:</span>
+        <span class="n">axis</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># type: str</span>
+        <span class="k">if</span> <span class="n">axis</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Invalid Symbol: </span><span class="si">{}</span><span class="s2"> (must be x, y or z).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">item</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;+&quot;</span><span class="p">:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;1.0&quot;</span>
@@ -102,14 +202,14 @@
 
 
 <span class="k">def</span> <span class="nf">_set_dim_structure_entry</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">panel</span><span class="p">):</span>
-    <span class="c1"># type: (str, str, Dict[str, Any]) -&gt; None</span>
-    <span class="c1"># Reimplementation of set_dim_structure_entry from libcrystfel/src/events.c.</span>
+    <span class="c1"># type: (str, str, TypePanel) -&gt; None</span>
+    <span class="c1"># Re-implementation of set_dim_structure_entry from libcrystfel/src/events.c.</span>
     <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;dim_structure&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">dim</span> <span class="o">=</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;dim_structure&quot;</span><span class="p">]</span>
+        <span class="n">dim</span> <span class="o">=</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;dim_structure&quot;</span><span class="p">]</span>  <span class="c1"># type: List[Union[int, str, None]]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">dim</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">dim_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+        <span class="n">dim_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>  <span class="c1"># type: int</span>
     <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;&#39;dim&#39; must be followed by a number, e.g. &#39;dim0&#39;)&quot;</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
@@ -117,7 +217,7 @@
     <span class="k">if</span> <span class="n">dim_index</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dim</span><span class="p">),</span> <span class="n">dim_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
             <span class="n">dim</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;ss&quot;</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;fs&quot;</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;%&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;ss&quot;</span><span class="p">,</span> <span class="s2">&quot;fs&quot;</span><span class="p">,</span> <span class="s2">&quot;%&quot;</span><span class="p">):</span>
         <span class="n">dim</span><span class="p">[</span><span class="n">dim_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
     <span class="k">elif</span> <span class="n">value</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
         <span class="n">dim</span><span class="p">[</span><span class="n">dim_index</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
@@ -126,21 +226,23 @@
     <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;dim_structure&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dim</span>
 
 
-<span class="k">def</span> <span class="nf">_parse_field_for_panel</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">panel</span><span class="p">):</span>
-    <span class="c1"># type: (str, str, Dict[str, Any]) -&gt; None</span>
-    <span class="c1"># Reimplementation of parse_field_for_panel from libcrystfel/src/detector.c.</span>
+<span class="k">def</span> <span class="nf">_parse_field_for_panel</span><span class="p">(</span>  <span class="c1"># pylint: disable=too-many-branches, too-many-statements</span>
+    <span class="n">key</span><span class="p">,</span>  <span class="c1"># type: str</span>
+    <span class="n">value</span><span class="p">,</span>  <span class="c1"># type: str</span>
+    <span class="n">panel</span><span class="p">,</span>  <span class="c1"># type: TypePanel</span>
+    <span class="n">panel_name</span><span class="p">,</span>  <span class="c1"># type: str</span>
+    <span class="n">detector</span><span class="p">,</span>  <span class="c1"># type: TypeDetector</span>
+<span class="p">):</span>
+    <span class="c1"># type: (...) -&gt; None</span>
+    <span class="c1"># Re-implementation of parse_field_for_panel from libcrystfel/src/detector.c.</span>
     <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;min_fs&quot;</span><span class="p">:</span>
-        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;origin_min_fs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;min_fs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;orig_min_fs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;max_fs&quot;</span><span class="p">:</span>
-        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;origin_max_fs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;max_fs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;orig_max_fs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;min_ss&quot;</span><span class="p">:</span>
-        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;origin_min_ss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;min_ss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;orig_min_ss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;max_ss&quot;</span><span class="p">:</span>
-        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;origin_max_ss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;max_ss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;orig_max_ss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;corner_x&quot;</span><span class="p">:</span>
         <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;cnx&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;corner_y&quot;</span><span class="p">:</span>
@@ -162,7 +264,13 @@
     <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;adu_per_photon&quot;</span><span class="p">:</span>
         <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;adu_per_photon&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;rigid_group&quot;</span><span class="p">:</span>
-        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;rigid_group&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;rigid_groups&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">panel_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;rigid_groups&quot;</span><span class="p">][</span><span class="n">value</span><span class="p">]:</span>
+                <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;rigid_groups&quot;</span><span class="p">][</span><span class="n">value</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">panel_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;rigid_groups&quot;</span><span class="p">][</span><span class="n">value</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">panel_name</span><span class="p">,</span>
+            <span class="p">]</span>
     <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;clen&quot;</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;clen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
@@ -181,15 +289,15 @@
     <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;mask_file&quot;</span><span class="p">:</span>
         <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;mask_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
     <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;saturation_map&quot;</span><span class="p">:</span>
-        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;saturation_map&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;satmap&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
     <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;saturation_map_file&quot;</span><span class="p">:</span>
-        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;saturation_map_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;satmap_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
     <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;coffset&quot;</span><span class="p">:</span>
         <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;coffset&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;res&quot;</span><span class="p">:</span>
         <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;res&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;max_adu&quot;</span><span class="p">:</span>
-        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;max_adu&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;max_adu&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;badrow_direction&quot;</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span>
             <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;badrow&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;f&quot;</span>
@@ -230,12 +338,19 @@
     <span class="k">elif</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;dim&quot;</span><span class="p">):</span>
         <span class="n">_set_dim_structure_entry</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">panel</span><span class="o">=</span><span class="n">panel</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unrecognised field: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+        <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unrecognized field: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
 
 
-<span class="k">def</span> <span class="nf">_parse_toplevel</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">beam</span><span class="p">,</span> <span class="n">panel</span><span class="p">):</span>
-    <span class="c1"># type: (str, str, Dict[str, Any], Dict[str, Any], Dict[str, Any]) -&gt; None</span>
-    <span class="c1"># Reimplementation of parse_toplevel from libcrystfel/src/detector.c.</span>
+<span class="k">def</span> <span class="nf">_parse_toplevel</span><span class="p">(</span>
+    <span class="n">key</span><span class="p">,</span>  <span class="c1"># type: str</span>
+    <span class="n">value</span><span class="p">,</span>  <span class="c1"># type: str</span>
+    <span class="n">detector</span><span class="p">,</span>  <span class="c1"># type: TypeDetector</span>
+    <span class="n">beam</span><span class="p">,</span>  <span class="c1"># type: TypeBeam</span>
+    <span class="n">panel</span><span class="p">,</span>  <span class="c1"># type: TypePanel</span>
+    <span class="n">hdf5_peak_path</span><span class="p">,</span>  <span class="c1"># type: Union[str, None]</span>
+<span class="p">):</span>  <span class="c1"># pylint: disable=too-many-branches</span>
+    <span class="c1"># type: (...) -&gt; Union[str, None]</span>
+    <span class="c1"># Re-implementation of parse_toplevel from libcrystfel/src/detector.c.</span>
     <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;mask_bad&quot;</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;mask_bad&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
@@ -258,18 +373,22 @@
     <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;photon_energy_scale&quot;</span><span class="p">:</span>
         <span class="n">beam</span><span class="p">[</span><span class="s2">&quot;photon_energy_scale&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;peak_info_location&quot;</span><span class="p">:</span>
-        <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;peak_info_location&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="n">hdf5_peak_path</span> <span class="o">=</span> <span class="n">value</span>
     <span class="k">elif</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;rigid_group&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;rigid_group_collection&quot;</span><span class="p">):</span>
         <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;rigid_groups&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">[</span><span class="mi">12</span><span class="p">:]]</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;rigid_group_collection&quot;</span><span class="p">):</span>
         <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;rigid_group_collections&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">[</span><span class="mi">23</span><span class="p">:]]</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">_parse_field_for_panel</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">panel</span><span class="o">=</span><span class="n">panel</span><span class="p">)</span>
+        <span class="n">_parse_field_for_panel</span><span class="p">(</span>
+            <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">panel</span><span class="o">=</span><span class="n">panel</span><span class="p">,</span> <span class="n">panel_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">detector</span><span class="o">=</span><span class="n">detector</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">hdf5_peak_path</span>
 
 
 <span class="k">def</span> <span class="nf">_check_bad_fsss</span><span class="p">(</span><span class="n">bad_region</span><span class="p">,</span> <span class="n">is_fsss</span><span class="p">):</span>
-    <span class="c1"># type: (Dict[str, Any], int) -&gt; None</span>
-    <span class="c1"># Reimplementation of check_bad_fsss from libcrystfel/src/detector.c.</span>
+    <span class="c1"># type: (TypeBadRegion, int) -&gt; None</span>
+    <span class="c1"># Re-implementation of check_bad_fsss from libcrystfel/src/detector.c.</span>
     <span class="k">if</span> <span class="n">bad_region</span><span class="p">[</span><span class="s2">&quot;is_fsss&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">99</span><span class="p">:</span>
         <span class="n">bad_region</span><span class="p">[</span><span class="s2">&quot;is_fsss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">is_fsss</span>
         <span class="k">return</span>
@@ -277,12 +396,10 @@
     <span class="k">if</span> <span class="n">is_fsss</span> <span class="o">!=</span> <span class="n">bad_region</span><span class="p">[</span><span class="s2">&quot;is_fsss&quot;</span><span class="p">]:</span>
         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;You can&#39;t mix x/y and fs/ss in a bad region&quot;</span><span class="p">)</span>
 
-    <span class="k">return</span>
-
 
 <span class="k">def</span> <span class="nf">_parse_field_bad</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">bad</span><span class="p">):</span>
-    <span class="c1"># type: (str, str, Dict[str, Any]) -&gt; None</span>
-    <span class="c1"># Reimplementation of parse_field_bad from libcrystfel/src/detector.c.</span>
+    <span class="c1"># type: (str, str, TypeBadRegion) -&gt; None</span>
+    <span class="c1"># Re-implementation of parse_field_bad from libcrystfel/src/detector.c.</span>
     <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;min_x&quot;</span><span class="p">:</span>
         <span class="n">bad</span><span class="p">[</span><span class="s2">&quot;min_x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="n">_check_bad_fsss</span><span class="p">(</span><span class="n">bad_region</span><span class="o">=</span><span class="n">bad</span><span class="p">,</span> <span class="n">is_fsss</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -310,34 +427,32 @@
     <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;panel&quot;</span><span class="p">:</span>
         <span class="n">bad</span><span class="p">[</span><span class="s2">&quot;panel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unrecognised field: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
-
-    <span class="k">return</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unrecognized field: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
 
 
-<span class="k">def</span> <span class="nf">_check_point</span><span class="p">(</span>
-    <span class="n">name</span><span class="p">,</span>  <span class="c1"># type: str</span>
-    <span class="n">panel</span><span class="p">,</span>  <span class="c1"># type: Dict[str, Any]</span>
+<span class="k">def</span> <span class="nf">_check_point</span><span class="p">(</span>  <span class="c1"># pylint: disable=too-many-arguments</span>
+    <span class="n">panel_name</span><span class="p">,</span>  <span class="c1"># type: str</span>
+    <span class="n">panel</span><span class="p">,</span>  <span class="c1"># type: TypePanel</span>
     <span class="n">fs_</span><span class="p">,</span>  <span class="c1"># type: int</span>
     <span class="n">ss_</span><span class="p">,</span>  <span class="c1"># type: int</span>
     <span class="n">min_d</span><span class="p">,</span>  <span class="c1"># type: float</span>
     <span class="n">max_d</span><span class="p">,</span>  <span class="c1"># type: float</span>
-    <span class="n">detector</span><span class="p">,</span>  <span class="c1"># type: Dict[str, Any]</span>
+    <span class="n">detector</span><span class="p">,</span>  <span class="c1"># type: TypeDetector</span>
 <span class="p">):</span>
     <span class="c1"># type: (...) -&gt; Tuple[float, float]</span>
-    <span class="c1"># Reimplementation of check_point from libcrystfel/src/detector.c.</span>
-    <span class="n">xs_</span> <span class="o">=</span> <span class="n">fs_</span> <span class="o">*</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;fsx&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">ss_</span> <span class="o">*</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;ssx&quot;</span><span class="p">]</span>
-    <span class="n">ys_</span> <span class="o">=</span> <span class="n">fs_</span> <span class="o">*</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;fsy&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">ss_</span> <span class="o">*</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;ssy&quot;</span><span class="p">]</span>
-    <span class="n">rx_</span> <span class="o">=</span> <span class="p">(</span><span class="n">xs_</span> <span class="o">+</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;cnx&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;res&quot;</span><span class="p">]</span>
-    <span class="n">ry_</span> <span class="o">=</span> <span class="p">(</span><span class="n">ys_</span> <span class="o">+</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;cny&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;res&quot;</span><span class="p">]</span>
-    <span class="n">dist</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">rx_</span> <span class="o">*</span> <span class="n">rx_</span> <span class="o">+</span> <span class="n">ry_</span> <span class="o">*</span> <span class="n">ry_</span><span class="p">)</span>
+    <span class="c1"># Re-implementation of check_point from libcrystfel/src/detector.c.</span>
+    <span class="n">xs_</span> <span class="o">=</span> <span class="n">fs_</span> <span class="o">*</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;fsx&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">ss_</span> <span class="o">*</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;ssx&quot;</span><span class="p">]</span>  <span class="c1"># type: float</span>
+    <span class="n">ys_</span> <span class="o">=</span> <span class="n">fs_</span> <span class="o">*</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;fsy&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">ss_</span> <span class="o">*</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;ssy&quot;</span><span class="p">]</span>  <span class="c1"># type: float</span>
+    <span class="n">rx_</span> <span class="o">=</span> <span class="p">(</span><span class="n">xs_</span> <span class="o">+</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;cnx&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;res&quot;</span><span class="p">]</span>  <span class="c1"># type: float</span>
+    <span class="n">ry_</span> <span class="o">=</span> <span class="p">(</span><span class="n">ys_</span> <span class="o">+</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;cny&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;res&quot;</span><span class="p">]</span>  <span class="c1"># type: float</span>
+    <span class="n">dist</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">rx_</span> <span class="o">*</span> <span class="n">rx_</span> <span class="o">+</span> <span class="n">ry_</span> <span class="o">*</span> <span class="n">ry_</span><span class="p">)</span>  <span class="c1"># type: float</span>
     <span class="k">if</span> <span class="n">dist</span> <span class="o">&gt;</span> <span class="n">max_d</span><span class="p">:</span>
-        <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;furthest_out_panel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;furthest_out_panel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">panel_name</span>
         <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;furthest_out_fs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fs_</span>
         <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;furthest_out_ss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ss_</span>
         <span class="n">max_d</span> <span class="o">=</span> <span class="n">dist</span>
     <span class="k">elif</span> <span class="n">dist</span> <span class="o">&lt;</span> <span class="n">min_d</span><span class="p">:</span>
-        <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;furthest_in_panel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;furthest_in_panel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">panel_name</span>
         <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;furthest_in_fs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fs_</span>
         <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;furthest_in_ss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ss_</span>
         <span class="n">min_d</span> <span class="o">=</span> <span class="n">dist</span>
@@ -346,13 +461,13 @@
 
 
 <span class="k">def</span> <span class="nf">_find_min_max_d</span><span class="p">(</span><span class="n">detector</span><span class="p">):</span>
-    <span class="c1"># type: (Dict[str, Any]) -&gt; None</span>
-    <span class="c1"># Reimplementation of find_min_max_d from libcrystfel/src/detector.c.</span>
-    <span class="n">min_d</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
-    <span class="n">max_d</span> <span class="o">=</span> <span class="mf">0.0</span>
-    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">panel</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="c1"># type: (TypeDetector) -&gt; None</span>
+    <span class="c1"># Re-implementation of find_min_max_d from libcrystfel/src/detector.c.</span>
+    <span class="n">min_d</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>  <span class="c1"># type: float</span>
+    <span class="n">max_d</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># type: float</span>
+    <span class="k">for</span> <span class="n">panel_name</span><span class="p">,</span> <span class="n">panel</span> <span class="ow">in</span> <span class="n">viewitems</span><span class="p">(</span><span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]):</span>
         <span class="n">min_d</span><span class="p">,</span> <span class="n">max_d</span> <span class="o">=</span> <span class="n">_check_point</span><span class="p">(</span>
-            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">panel_name</span><span class="o">=</span><span class="n">panel_name</span><span class="p">,</span>
             <span class="n">panel</span><span class="o">=</span><span class="n">panel</span><span class="p">,</span>
             <span class="n">fs_</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
             <span class="n">ss_</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
@@ -361,7 +476,7 @@
             <span class="n">detector</span><span class="o">=</span><span class="n">detector</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">min_d</span><span class="p">,</span> <span class="n">max_d</span> <span class="o">=</span> <span class="n">_check_point</span><span class="p">(</span>
-            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">panel_name</span><span class="o">=</span><span class="n">panel_name</span><span class="p">,</span>
             <span class="n">panel</span><span class="o">=</span><span class="n">panel</span><span class="p">,</span>
             <span class="n">fs_</span><span class="o">=</span><span class="n">panel</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">],</span>
             <span class="n">ss_</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
@@ -370,7 +485,7 @@
             <span class="n">detector</span><span class="o">=</span><span class="n">detector</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">min_d</span><span class="p">,</span> <span class="n">max_d</span> <span class="o">=</span> <span class="n">_check_point</span><span class="p">(</span>
-            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">panel_name</span><span class="o">=</span><span class="n">panel_name</span><span class="p">,</span>
             <span class="n">panel</span><span class="o">=</span><span class="n">panel</span><span class="p">,</span>
             <span class="n">fs_</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
             <span class="n">ss_</span><span class="o">=</span><span class="n">panel</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">],</span>
@@ -379,7 +494,7 @@
             <span class="n">detector</span><span class="o">=</span><span class="n">detector</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">min_d</span><span class="p">,</span> <span class="n">max_d</span> <span class="o">=</span> <span class="n">_check_point</span><span class="p">(</span>
-            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">panel_name</span><span class="o">=</span><span class="n">panel_name</span><span class="p">,</span>
             <span class="n">panel</span><span class="o">=</span><span class="n">panel</span><span class="p">,</span>
             <span class="n">fs_</span><span class="o">=</span><span class="n">panel</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">],</span>
             <span class="n">ss_</span><span class="o">=</span><span class="n">panel</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">],</span>
@@ -389,26 +504,25 @@
         <span class="p">)</span>
 
 
-<div class="viewcode-block" id="load_crystfel_geometry"><a class="viewcode-back" href="../../cfelpyutils.crystfel_utils.html#cfelpyutils.crystfel_utils.load_crystfel_geometry">[docs]</a><span class="k">def</span> <span class="nf">load_crystfel_geometry</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
-    <span class="c1"># type: (str) -&gt; Dict[str, Any]</span>
+<div class="viewcode-block" id="load_crystfel_geometry"><a class="viewcode-back" href="../../cfelpyutils.crystfel_utils.html#cfelpyutils.crystfel_utils.load_crystfel_geometry">[docs]</a><span class="k">def</span> <span class="nf">load_crystfel_geometry</span><span class="p">(</span>
+    <span class="n">filename</span><span class="p">,</span>
+<span class="p">):</span>  <span class="c1"># pylint: disable=too-many-locals, too-many-branches, too-many-statements</span>
+    <span class="c1"># type: (str) -&gt; Tuple[TypeDetector, TypeBeam, Union[str, None]]</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Loads a CrystFEL geometry file.</span>
 
-<span class="sd">    This function is a reimplementation of the get_detector_geometry_2 function from</span>
+<span class="sd">    This function is a Re-implementation of the get_detector_geometry_2 function from</span>
 <span class="sd">    CrystFEL. It reads information from a CrystFEL geometry file.</span>
 
-<span class="sd">    For a full documentation of the CrystFEL geometry format, see the relevant `man</span>
-<span class="sd">    page &lt;http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html&gt;`_.</span>
+<span class="sd">    The code of this function is currently synchronized with the code of the function</span>
+<span class="sd">    &#39;get_detector_geometry_2&#39; in CrystFEL at commit cff9159b4bc6.</span>
 
-<span class="sd">    The function returns a dictionary with the geometry information.</span>
+<span class="sd">    The CrystFEL geometry file uses a key/value, fully documented in the relevant</span>
+<span class="sd">    `man page &lt;http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html&gt;`_.</span>
 
-<span class="sd">    * The CrystFEL geometry file uses a key/value language. The keys in the returned</span>
-<span class="sd">      dictionary match the keys in the geometry file.</span>
-
-<span class="sd">    * The dictionary values store the corresponding values.</span>
-
-<span class="sd">    * The code of this function is currently synchronized with the code of the function</span>
-<span class="sd">      &#39;get_detector_geometry_2&#39; in CrystFEL at commit 41a8fa9819010.</span>
+<span class="sd">    This function returns dictionaries that match the CrystFEL internal representation</span>
+<span class="sd">    of the information in the file (see the libcrystfel/src/detector.c file in the</span>
+<span class="sd">    CrystFEL source code).</span>
 
 <span class="sd">    Arguments:</span>
 
@@ -416,10 +530,223 @@
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        Dict[str, Any]: a dictionary with the geometry information loaded from the</span>
-<span class="sd">        file.</span>
+<span class="sd">        Tuple[TypeDetector, TypeBeam, Union[str, None]]: a tuple with the information</span>
+<span class="sd">        loaded from the file. The tuple has the following content.</span>
+
+<span class="sd">        * The first entry in the tuple is a dictionary storing the information strictly</span>
+<span class="sd">          related to the detector geometry. The following is a brief description of the</span>
+<span class="sd">          key/value pairs in the dictionary.</span>
+
+<span class="sd">          - **Detector-related key/pairs**</span>
+
+<span class="sd">          **panels** the panels in the detector. The value corresponding to this key</span>
+<span class="sd">          is a dictionary containing information about the panels that make up the</span>
+<span class="sd">          detector. In this dictionary, the keys are the panel names, and the values</span>
+<span class="sd">          are further dictionaries storing the panel information.</span>
+
+<span class="sd">          **bad**: the bad regions in the detector. The value corresponding to this key</span>
+<span class="sd">          is a dictionary containing information about the bad regions in  the</span>
+<span class="sd">          detector. In this dictionary, the keys are the bad region names, and the</span>
+<span class="sd">          values are nested dictionaries storing the bad region information.</span>
+
+<span class="sd">          **mask_bad**: the value used in masks to label a pixel as bad.</span>
+
+<span class="sd">          **mask_good**: the value used in masks to label a pixel as good.</span>
+
+<span class="sd">          **rigid_groups**: the rigid groups of panels in the detector. The value</span>
+<span class="sd">          corresponding to this key is a dictionary containing information about the</span>
+<span class="sd">          rigid groups in the detector. In this dictionary, the keys are the names</span>
+<span class="sd">          of the rigid groups and the values are lists storing the names of the panels</span>
+<span class="sd">          belonging to the rigid groups.</span>
+
+<span class="sd">          **rigid_groups**: the collections of rigid groups of panels in the detector.</span>
+<span class="sd">          The value corresponding to this key is a dictionary containing information</span>
+<span class="sd">          about the rigid group collections. In this dictionary, the keys are the names</span>
+<span class="sd">          of the rigid group collections and the values are lists storing the names of</span>
+<span class="sd">          rigid groups belonging to the collections.</span>
+
+<span class="sd">          **furthest_out_panel**: the name of the panel where the furthest away pixel</span>
+<span class="sd">          from the center of the reference system can be found.</span>
+
+<span class="sd">          **furthest_out_fs**: the fs coordinate, within its panel, of the furthest</span>
+<span class="sd">          away pixel from the center of the reference system</span>
+
+<span class="sd">          **furthest_out_ss**: the ss coordinate, within its panel, of the furthest</span>
+<span class="sd">          away pixel from the center of the reference system</span>
+
+<span class="sd">          **furthest_in_panel**: the name of the panel where the closest pixel</span>
+<span class="sd">          to the center of the reference system can be found.</span>
+
+<span class="sd">          **furthest_in_fs**: the fs coordinate, within its panel, of the closest</span>
+<span class="sd">          pixel to the center of the reference system.</span>
+
+<span class="sd">          **furthest_in_ss**: the ss coordinate, within its panel, of the closest</span>
+<span class="sd">          pixel to the center of the reference system.</span>
+
+<span class="sd">          **Panel-related key/pairs**</span>
+
+<span class="sd">          **cnx**: the x location of the corner of the panel.</span>
+
+<span class="sd">          **cny**: the y location of the corner of the panel.</span>
+
+<span class="sd">          **coffset**: the offset to be applied to the clen value to determine the</span>
+<span class="sd">          distance of the panel from the interaction point.</span>
+
+<span class="sd">          **clen**: the distance from the interaction point to the corner of the</span>
+<span class="sd">          first pixel of the panel, as reported from the facility.</span>
+
+<span class="sd">          **clen_from**: the location of the clen information in the  data files, in</span>
+<span class="sd">          case the information must be extracted from the files.</span>
+
+<span class="sd">          **mask**: the location of the mask data for the panel in a data file.</span>
+
+<span class="sd">          **mask_file**: the data file in which the mask data for the panel can be</span>
+<span class="sd">          found.</span>
+
+<span class="sd">          **satmap**: the location of the per-pixel saturation map for the panel in a</span>
+<span class="sd">          data file.</span>
+
+<span class="sd">          **satmap_file**: the data file in which the per-pixel saturation map for the</span>
+<span class="sd">          panel can be found.</span>
+
+<span class="sd">          **res**: the resolution of the panel in pixels per meter.</span>
+
+<span class="sd">          **badrow**: the readout direction for filtering out clusters of peaks for the</span>
+<span class="sd">          panel. The corresponding value is either the string &#39;x&#39; or the string &#39;y&#39;.</span>
+
+<span class="sd">          **no_index**: wether the panel should be considered entirely bad. The panel</span>
+<span class="sd">          will be considered bad if the value corresponding to this key is non-zero.</span>
+
+<span class="sd">          **adu_per_photon**: the number of detector intensity units per photon for the</span>
+<span class="sd">          panel.</span>
+
+<span class="sd">          **max_adu**: the detector intensity unit value above which a pixel of the</span>
+<span class="sd">          detector should be considered unreliable.</span>
+
+<span class="sd">          **data**: the location of the panel data in a data file.</span>
+
+<span class="sd">          **adu_per_eV**: the number of detector intensity units for the panel per eV</span>
+<span class="sd">          of photon energy.</span>
+
+<span class="sd">          **dim_structure**: a description of the structure of the data block for the</span>
+<span class="sd">          panel. The value corresponding to this key is a list of strings describing</span>
+<span class="sd">          the meaning of each axis of the data block. See the</span>
+<span class="sd">          `crystfel_geometry &lt;http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html&gt;`_.</span>
+<span class="sd">          man page for a detailed explanation.</span>
+
+<span class="sd">          **fsx**: the fs-&gt;x component of the transformation matrix from pixel indexes</span>
+<span class="sd">          to detector reference system coordinates.</span>
+
+<span class="sd">          **fsy**: the fs-&gt;y component of the transformation matrix from pixel indexes</span>
+<span class="sd">          to detector reference system coordinates.</span>
+
+<span class="sd">          **fsz**: the fs-&gt;z component of the transformation matrix from pixel indexes</span>
+<span class="sd">          to detector reference system coordinates.</span>
+
+<span class="sd">          **ssx**: the ss-&gt;x component of the transformation matrix from pixel indexes</span>
+<span class="sd">          to detector reference system coordinates.</span>
+
+<span class="sd">          **ssy**: the ss-&gt;y component of the transformation matrix from pixel indexes</span>
+<span class="sd">          to detector reference system coordinates.</span>
+
+<span class="sd">          **ssz**: the ss-&gt;z component of the transformation matrix from pixel indexes</span>
+<span class="sd">          to detector reference system coordinates.</span>
+
+<span class="sd">          **rail_x**: the x component, with respect to the reference system, of the</span>
+<span class="sd">          direction of the rail along which the detector can be moved.</span>
+
+<span class="sd">          **rail_y**: the y component, with respect to the reference system, of the</span>
+<span class="sd">          direction of the rail along which the detector can be moved.</span>
+
+<span class="sd">          **rail_z**: the z component, with respect to the reference system, of the</span>
+<span class="sd">          direction of the rail along which the detector can be moved.</span>
+
+<span class="sd">          **clen_for_centering**: the value of clen (camera length) at which the beam</span>
+<span class="sd">          is centered.</span>
+
+<span class="sd">          **xfs**: the x-&gt;fs component of the transformation matrix from detector</span>
+<span class="sd">          reference system coordinates to pixel indexes.</span>
+
+<span class="sd">          **yfs**: the y-&gt;fs component of the transformation matrix from detector</span>
+<span class="sd">          reference system coordinates to pixel indexes.</span>
+
+<span class="sd">          **xss**: the x-&gt;ss component of the transformation matrix from detector</span>
+<span class="sd">          reference system coordinates to pixel indexes.</span>
+
+<span class="sd">          **yss**: the y-&gt;ss component of the transformation matrix from detector</span>
+<span class="sd">          reference system coordinates to pixel indexes.</span>
+
+<span class="sd">          **orig_min_fs**: the initial fs index of the location of the panel in its</span>
+<span class="sd">          data block in a data file.</span>
+
+<span class="sd">          **orig_max_fs**: the final fs index of the location of the panel in its</span>
+<span class="sd">          data block in a data file.</span>
+
+<span class="sd">          **orig_min_ss**: the initial ss index of the location of the panel in its</span>
+<span class="sd">          data block in a data file.</span>
+
+<span class="sd">          **orig_max_ss**: the final fs index of the location of the panel in its</span>
+<span class="sd">          data block in a data file.</span>
+
+<span class="sd">          **w**: the width of the panel in pixels.</span>
+
+<span class="sd">          **h**: the width of the panel in pixels.</span>
+
+<span class="sd">          - **Bad region-related key/value pairs**</span>
+
+<span class="sd">          **panel**: the name of the panel in which the bad region lies.**</span>
+
+<span class="sd">          **min_x**: the initial x coordinate of the bad region in the detector</span>
+<span class="sd">          reference system.</span>
+
+<span class="sd">          **max_x**: the final x coordinate of the bad region in the detector reference</span>
+<span class="sd">          system.</span>
+
+<span class="sd">          **min_y**: the initial y coordinate of the bad region in the detector</span>
+<span class="sd">          reference system.</span>
+
+<span class="sd">          **max_y**: the final y coordinate of the bad region in the detector reference</span>
+<span class="sd">          system.</span>
+
+<span class="sd">          **min_fs**: the initial fs index of the location of the bad region in its</span>
+<span class="sd">          data block in a data file.</span>
+
+<span class="sd">          **max_fs**: the final fs index of the location of the bad region in its</span>
+<span class="sd">          data block in a data file.</span>
+
+<span class="sd">          **min_ss**: the initial ss index of the location of the bad region in its</span>
+<span class="sd">          data block in a data file.</span>
+
+<span class="sd">          **max_ss**: the final ss index of the location of the bad region in its</span>
+<span class="sd">          data block in a data file.</span>
+
+<span class="sd">          **is_fsss**: whether the fs,ss definition of the bad region is the valid one.</span>
+<span class="sd">          If the value corresponding to this key is True, the fs,ss-based definition of</span>
+<span class="sd">          the bad region should be considered the valid one. Otherwise, the valid</span>
+<span class="sd">          definition is the x,y-based one.</span>
+
+<span class="sd">        * The second entry in the tuple is a dictionary storing the information related</span>
+<span class="sd">          to properties and characteristics of the beam. The following is a brief</span>
+<span class="sd">          description of the key/value pairs in the dictionary.</span>
+
+<span class="sd">          - **photon_energy**: the photon energy in eV.</span>
+
+<span class="sd">          **photon_energy_from**: the location of the photon energy information in the</span>
+<span class="sd">          data files, in case the information must be extracted from the files.</span>
+
+<span class="sd">          **photon_energy_scale**: the scaling factor for the photon energy, if</span>
+<span class="sd">          the provided energy value needs to be scaled to be converted to eV.</span>
+
+<span class="sd">        * The third entry in the tuple is a string storing the HDF5 path, in the</span>
+<span class="sd">          data files, where peak information can be found. If the CrystFEL geometry</span>
+<span class="sd">          file does not provide this information, this string contains None.</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">beam</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;photon_energy&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;photon_energy_from&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;photon_energy_scale&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+    <span class="n">beam</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;photon_energy&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="s2">&quot;photon_energy_from&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;photon_energy_scale&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">}</span>  <span class="c1"># type: TypeBeam</span>
     <span class="n">detector</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;panels&quot;</span><span class="p">:</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">(),</span>
         <span class="s2">&quot;bad&quot;</span><span class="p">:</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">(),</span>
@@ -427,261 +754,311 @@
         <span class="s2">&quot;mask_bad&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
         <span class="s2">&quot;rigid_groups&quot;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s2">&quot;rigid_group_collections&quot;</span><span class="p">:</span> <span class="p">{},</span>
-    <span class="p">}</span>
+        <span class="s2">&quot;furthest_out_panel&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;furthest_out_fs&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;furthest_out_ss&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;furthest_in_panel&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;furthest_in_fs&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;furthest_in_ss&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span>
+    <span class="p">}</span>  <span class="c1"># type: TypeDetector</span>
     <span class="n">default_panel</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;cnx&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s2">&quot;cny&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s2">&quot;clen&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;cnx&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;cny&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span>
         <span class="s2">&quot;coffset&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="s2">&quot;clen&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;clen_from&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;mask&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;mask_file&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;satmap&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;satmap_file&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
         <span class="s2">&quot;res&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span>
         <span class="s2">&quot;badrow&quot;</span><span class="p">:</span> <span class="s2">&quot;-&quot;</span><span class="p">,</span>
         <span class="s2">&quot;no_index&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">&quot;adu_per_photon&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;max_adu&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;adu_per_eV&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;dim_structure&quot;</span><span class="p">:</span> <span class="p">[],</span>
         <span class="s2">&quot;fsx&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
         <span class="s2">&quot;fsy&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
         <span class="s2">&quot;fsz&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
         <span class="s2">&quot;ssx&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
         <span class="s2">&quot;ssy&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
         <span class="s2">&quot;ssz&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-        <span class="s2">&quot;rail_x&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s2">&quot;rail_y&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s2">&quot;rail_z&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s2">&quot;clen_for_centering&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s2">&quot;adu_per_eV&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s2">&quot;adu_per_photon&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s2">&quot;max_adu&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
-        <span class="s2">&quot;mask&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s2">&quot;mask_file&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s2">&quot;satmap&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s2">&quot;satmap_file&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s2">&quot;dim_structure&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">}</span>
+        <span class="s2">&quot;rail_x&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;rail_y&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;rail_z&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;clen_for_centering&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;xfs&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="s2">&quot;yfs&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="s2">&quot;xss&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="s2">&quot;yss&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="s2">&quot;orig_min_fs&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;orig_max_fs&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;orig_min_ss&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;orig_max_ss&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;w&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span>
+    <span class="p">}</span>  <span class="c1"># type: TypePanel</span>
     <span class="n">default_bad_region</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;min_x&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s2">&quot;max_x&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s2">&quot;min_y&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s2">&quot;max_y&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;panel&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;min_x&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;max_x&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;min_y&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;max_y&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span>
         <span class="s2">&quot;min_fs&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
         <span class="s2">&quot;max_fs&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
         <span class="s2">&quot;min_ss&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
         <span class="s2">&quot;max_ss&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
         <span class="s2">&quot;is_fsss&quot;</span><span class="p">:</span> <span class="mi">99</span><span class="p">,</span>
-    <span class="p">}</span>
-    <span class="n">default_dim</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ss&quot;</span><span class="p">,</span> <span class="s2">&quot;fs&quot;</span><span class="p">]</span>
-
-    <span class="n">fhandle</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
-    <span class="n">fhlines</span> <span class="o">=</span> <span class="n">fhandle</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fhlines</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">):</span>
-            <span class="k">continue</span>
-        <span class="n">line_without_comments</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">line_items</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;([ </span><span class="se">\t</span><span class="s2">])&quot;</span><span class="p">,</span> <span class="n">string</span><span class="o">=</span><span class="n">line_without_comments</span><span class="p">)</span>
-        <span class="n">line_items</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">line_items</span> <span class="k">if</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)]</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line_items</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="k">continue</span>
-        <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line_items</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span>
-        <span class="k">if</span> <span class="n">line_items</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;=&quot;</span><span class="p">:</span>
-            <span class="k">continue</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;(/)&quot;</span><span class="p">,</span> <span class="n">line_items</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">path</span> <span class="k">if</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s2">&quot;/&quot;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">_parse_toplevel</span><span class="p">(</span>
-                <span class="n">key</span><span class="o">=</span><span class="n">line_items</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
-                <span class="n">detector</span><span class="o">=</span><span class="n">detector</span><span class="p">,</span>
-                <span class="n">beam</span><span class="o">=</span><span class="n">beam</span><span class="p">,</span>
-                <span class="n">panel</span><span class="o">=</span><span class="n">default_panel</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="k">continue</span>
-        <span class="n">curr_bad</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">curr_panel</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;bad&quot;</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;bad&quot;</span><span class="p">]:</span>
-                <span class="n">curr_bad</span> <span class="o">=</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;bad&quot;</span><span class="p">][</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">curr_bad</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">default_bad_region</span><span class="p">)</span>
-                <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;bad&quot;</span><span class="p">][</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">curr_bad</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]:</span>
-                <span class="n">curr_panel</span> <span class="o">=</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">curr_panel</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">default_panel</span><span class="p">)</span>
-                <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">curr_panel</span>
-        <span class="k">if</span> <span class="n">curr_panel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">_parse_field_for_panel</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">panel</span><span class="o">=</span><span class="n">curr_panel</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">_parse_field_bad</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">bad</span><span class="o">=</span><span class="n">curr_bad</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No panel descriptions in geometry file.&quot;</span><span class="p">)</span>
-    <span class="n">num_placeholders_in_panels</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">for</span> <span class="n">panel</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;dim_structure&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">curr_num_placeholders</span> <span class="o">=</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;dim_structure&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;%&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">curr_num_placeholders</span> <span class="o">=</span> <span class="mi">0</span>
-
-        <span class="k">if</span> <span class="n">num_placeholders_in_panels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">num_placeholders_in_panels</span> <span class="o">=</span> <span class="n">curr_num_placeholders</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">curr_num_placeholders</span> <span class="o">!=</span> <span class="n">num_placeholders_in_panels</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                    <span class="s2">&quot;All panels&#39; data and mask entries must have the same number of &quot;</span>
-                    <span class="s2">&quot;placeholders.&quot;</span>
-                <span class="p">)</span>
-    <span class="n">num_placeholders_in_masks</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">for</span> <span class="n">panel</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">curr_num_placeholders</span> <span class="o">=</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;%&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">curr_num_placeholders</span> <span class="o">=</span> <span class="mi">0</span>
-
-        <span class="k">if</span> <span class="n">num_placeholders_in_masks</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">num_placeholders_in_masks</span> <span class="o">=</span> <span class="n">curr_num_placeholders</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">curr_num_placeholders</span> <span class="o">!=</span> <span class="n">num_placeholders_in_masks</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                    <span class="s2">&quot;All panels&#39; data and mask entries must have the same number of &quot;</span>
-                    <span class="s2">&quot;placeholders.&quot;</span>
-                <span class="p">)</span>
-    <span class="k">if</span> <span class="n">num_placeholders_in_masks</span> <span class="o">&gt;</span> <span class="n">num_placeholders_in_panels</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-            <span class="s2">&quot;Number of placeholders in mask cannot be larger the number than for data.&quot;</span>
-        <span class="p">)</span>
-    <span class="n">dim_length</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">for</span> <span class="n">panel_name</span><span class="p">,</span> <span class="n">panel</span> <span class="ow">in</span> <span class="n">viewitems</span><span class="p">(</span><span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]):</span>
-        <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;dim_structure&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;dim_structure&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">default_dim</span><span class="p">)</span>
-
-        <span class="n">found_ss</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">found_fs</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">found_placeholder</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">dim_index</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">panel</span><span class="p">[</span><span class="s2">&quot;dim_structure&quot;</span><span class="p">]):</span>
-            <span class="k">if</span> <span class="n">entry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                    <span class="s2">&quot;Dimension </span><span class="si">{}</span><span class="s2"> for panel </span><span class="si">{}</span><span class="s2"> is undefined.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                        <span class="n">dim_index</span><span class="p">,</span> <span class="n">panel_name</span>
+    <span class="p">}</span>  <span class="c1"># type: TypeBadRegion</span>
+    <span class="n">default_dim</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ss&quot;</span><span class="p">,</span> <span class="s2">&quot;fs&quot;</span><span class="p">]</span>  <span class="c1"># type: List[Union[int, str, None]]</span>
+    <span class="n">hdf5_peak_path</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Union[str, None]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_handle</span><span class="p">:</span>
+            <span class="n">file_lines</span> <span class="o">=</span> <span class="n">file_handle</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>  <span class="c1"># type: List[str]</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">file_lines</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="n">line_without_comments</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># type: str</span>
+                <span class="n">line_items</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span>
+                    <span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;([ </span><span class="se">\t</span><span class="s2">])&quot;</span><span class="p">,</span> <span class="n">string</span><span class="o">=</span><span class="n">line_without_comments</span>
+                <span class="p">)</span>  <span class="c1"># type: List[str]</span>
+                <span class="n">line_items</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">line_items</span> <span class="k">if</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line_items</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line_items</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span>  <span class="c1"># type: str</span>
+                <span class="k">if</span> <span class="n">line_items</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;=&quot;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;(/)&quot;</span><span class="p">,</span> <span class="n">line_items</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  <span class="c1"># type: List[str]</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">path</span> <span class="k">if</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s2">&quot;/&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">hdf5_peak_path</span> <span class="o">=</span> <span class="n">_parse_toplevel</span><span class="p">(</span>
+                        <span class="n">key</span><span class="o">=</span><span class="n">line_items</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                        <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
+                        <span class="n">detector</span><span class="o">=</span><span class="n">detector</span><span class="p">,</span>
+                        <span class="n">beam</span><span class="o">=</span><span class="n">beam</span><span class="p">,</span>
+                        <span class="n">panel</span><span class="o">=</span><span class="n">default_panel</span><span class="p">,</span>
+                        <span class="n">hdf5_peak_path</span><span class="o">=</span><span class="n">hdf5_peak_path</span><span class="p">,</span>
                     <span class="p">)</span>
-                <span class="p">)</span>
-            <span class="k">elif</span> <span class="n">entry</span> <span class="o">==</span> <span class="s2">&quot;ss&quot;</span><span class="p">:</span>
-                <span class="n">found_ss</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">elif</span> <span class="n">entry</span> <span class="o">==</span> <span class="s2">&quot;fs&quot;</span><span class="p">:</span>
-                <span class="n">found_fs</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">elif</span> <span class="n">entry</span> <span class="o">==</span> <span class="s2">&quot;%&quot;</span><span class="p">:</span>
-                <span class="n">found_placeholder</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="n">found_ss</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;Exactly one slow scan dim coordinate is needed (found </span><span class="si">{}</span><span class="s2"> for panel &quot;</span>
-                <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">found_ss</span><span class="p">,</span> <span class="n">panel_name</span><span class="p">)</span>
-            <span class="p">)</span>
-        <span class="k">if</span> <span class="n">found_fs</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;Exactly one fast scan dim coordinate is needed (found </span><span class="si">{}</span><span class="s2"> for panel &quot;</span>
-                <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">found_fs</span><span class="p">,</span> <span class="n">panel_name</span><span class="p">)</span>
-            <span class="p">)</span>
-        <span class="k">if</span> <span class="n">found_placeholder</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;Only one placeholder dim coordinate is allowed. Maximum one &quot;</span>
-                <span class="s2">&quot;placeholder dim coordinate is allowed (found </span><span class="si">{}</span><span class="s2"> for panel </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">found_placeholder</span><span class="p">,</span> <span class="n">panel_name</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
-        <span class="k">if</span> <span class="n">dim_length</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">dim_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">panel</span><span class="p">[</span><span class="s2">&quot;dim_structure&quot;</span><span class="p">])</span>
-        <span class="k">elif</span> <span class="n">dim_length</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">panel</span><span class="p">[</span><span class="s2">&quot;dim_structure&quot;</span><span class="p">]):</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;Number of dim coordinates must be the same for all panels.&quot;</span>
-            <span class="p">)</span>
-        <span class="k">if</span> <span class="n">dim_length</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Number of dim coordinates must be at least two.&quot;</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">panel_name</span><span class="p">,</span> <span class="n">panel</span> <span class="ow">in</span> <span class="n">viewitems</span><span class="p">(</span><span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]):</span>
-        <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;origin_min_fs&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;Please specify the minimum fs coordinate for panel </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">panel_name</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
-        <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;origin_max_fs&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;Please specify the maximum fs coordinate for panel </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">panel_name</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
-        <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;origin_min_ss&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;Please specify the minimum ss coordinate for panel </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">panel_name</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
-        <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;origin_max_ss&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;Please specify the maximum ss coordinate for panel </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">panel_name</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
-        <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;cnx&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;Please specify the corner X coordinate for panel </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">panel_name</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
-        <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;clen&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;clen_from&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;Please specify the camera length for panel </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">panel_name</span><span class="p">)</span>
-            <span class="p">)</span>
-        <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;res&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;Please specify the resolution or panel </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">panel_name</span><span class="p">)</span>
-            <span class="p">)</span>
-        <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;adu_per_eV&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;adu_per_photon&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;Please specify either adu_per_eV or adu_per_photon for panel &quot;</span>
-                <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">panel_name</span><span class="p">)</span>
-            <span class="p">)</span>
-        <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;clen_for_centering&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;rail_x&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;You must specify clen_for_centering if you specify the rail &quot;</span>
-                <span class="s2">&quot;direction (panel </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">panel_name</span><span class="p">)</span>
-            <span class="p">)</span>
-        <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;rail_x&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;rail_x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
-            <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;rail_y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
-            <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;rail_z&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
-        <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;clen_for_centering&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;clen_for_centering&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
-        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;origin_max_fs&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;origin_min_fs&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
-        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;origin_max_ss&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;origin_min_ss&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
-    <span class="k">for</span> <span class="n">bad_region_name</span><span class="p">,</span> <span class="n">bad_region</span> <span class="ow">in</span> <span class="n">viewitems</span><span class="p">(</span><span class="n">detector</span><span class="p">[</span><span class="s2">&quot;bad&quot;</span><span class="p">]):</span>
-        <span class="k">if</span> <span class="n">bad_region</span><span class="p">[</span><span class="s2">&quot;is_fsss&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">99</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;Please specify the coordinate ranges for bad region </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">bad_region_name</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
-    <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;rigid_groups&quot;</span><span class="p">]:</span>
-        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;rigid_groups&quot;</span><span class="p">][</span><span class="n">group</span><span class="p">]:</span>
-            <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]:</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                    <span class="s2">&quot;Cannot add panel to rigid_group. Panel not found: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-                <span class="p">)</span>
-    <span class="k">for</span> <span class="n">group_collection</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;rigid_group_collections&quot;</span><span class="p">]:</span>
-        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;rigid_group_collections&quot;</span><span class="p">][</span><span class="n">group_collection</span><span class="p">]:</span>
-            <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;rigid_groups&quot;</span><span class="p">]:</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                    <span class="s2">&quot;Cannot add rigid_group to collection. Rigid group not &quot;</span>
-                    <span class="s2">&quot;found: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-                <span class="p">)</span>
-    <span class="k">for</span> <span class="n">panel</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-        <span class="n">d__</span> <span class="o">=</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;fsx&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;ssy&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;ssx&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;fsy&quot;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">d__</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Panel </span><span class="si">{}</span><span class="s2"> transformation is singluar.&quot;</span><span class="p">)</span>
-        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;xfs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;ssy&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">d__</span>
-        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;yfs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;ssx&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">d__</span>
-        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;xss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;fsy&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">d__</span>
-        <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;yss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;fsx&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">d__</span>
-    <span class="n">_find_min_max_d</span><span class="p">(</span><span class="n">detector</span><span class="p">)</span>
-    <span class="n">fhandle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="k">continue</span>
+                <span class="n">curr_bad</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Union[TypeBadRegion, None]</span>
+                <span class="n">curr_panel</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Union[TypePanel, None]</span>
+                <span class="k">if</span> <span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;bad&quot;</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;bad&quot;</span><span class="p">]:</span>
+                        <span class="n">curr_bad</span> <span class="o">=</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;bad&quot;</span><span class="p">][</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">curr_bad</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">default_bad_region</span><span class="p">)</span>
+                        <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;bad&quot;</span><span class="p">][</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">curr_bad</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]:</span>
+                        <span class="n">curr_panel</span> <span class="o">=</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">curr_panel</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">default_panel</span><span class="p">)</span>
+                        <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">curr_panel</span>
+                <span class="k">if</span> <span class="n">curr_panel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">_parse_field_for_panel</span><span class="p">(</span>
+                        <span class="n">key</span><span class="o">=</span><span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                        <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
+                        <span class="n">panel</span><span class="o">=</span><span class="n">curr_panel</span><span class="p">,</span>
+                        <span class="n">panel_name</span><span class="o">=</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                        <span class="n">detector</span><span class="o">=</span><span class="n">detector</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">_parse_field_bad</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">bad</span><span class="o">=</span><span class="n">curr_bad</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No panel descriptions in geometry file.&quot;</span><span class="p">)</span>
+            <span class="n">num_placeholders_in_panels</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># type: int</span>
+            <span class="k">for</span> <span class="n">panel</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;dim_structure&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">curr_num_placeholders</span> <span class="o">=</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;dim_structure&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span>
+                        <span class="s2">&quot;%&quot;</span>
+                    <span class="p">)</span>  <span class="c1"># type: int</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">curr_num_placeholders</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">return</span> <span class="n">detector</span></div>
+                <span class="k">if</span> <span class="n">num_placeholders_in_panels</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">num_placeholders_in_panels</span> <span class="o">=</span> <span class="n">curr_num_placeholders</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">curr_num_placeholders</span> <span class="o">!=</span> <span class="n">num_placeholders_in_panels</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                            <span class="s2">&quot;All panels&#39; data and mask entries must have the same &quot;</span>
+                            <span class="s2">&quot;number of placeholders.&quot;</span>
+                        <span class="p">)</span>
+            <span class="n">num_placeholders_in_masks</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># type: int</span>
+            <span class="k">for</span> <span class="n">panel</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">curr_num_placeholders</span> <span class="o">=</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;%&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">curr_num_placeholders</span> <span class="o">=</span> <span class="mi">0</span>
+
+                <span class="k">if</span> <span class="n">num_placeholders_in_masks</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">num_placeholders_in_masks</span> <span class="o">=</span> <span class="n">curr_num_placeholders</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">curr_num_placeholders</span> <span class="o">!=</span> <span class="n">num_placeholders_in_masks</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                            <span class="s2">&quot;All panels&#39; data and mask entries must have the same &quot;</span>
+                            <span class="s2">&quot;number of placeholders.&quot;</span>
+                        <span class="p">)</span>
+            <span class="k">if</span> <span class="n">num_placeholders_in_masks</span> <span class="o">&gt;</span> <span class="n">num_placeholders_in_panels</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="s2">&quot;Number of placeholders in mask cannot be larger the number than &quot;</span>
+                    <span class="s2">&quot;for data.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">dim_length</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># type: int</span>
+            <span class="k">for</span> <span class="n">panel_name</span><span class="p">,</span> <span class="n">panel</span> <span class="ow">in</span> <span class="n">viewitems</span><span class="p">(</span><span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;dim_structure&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;dim_structure&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">default_dim</span><span class="p">)</span>
+
+                <span class="n">found_ss</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># type: int</span>
+                <span class="n">found_fs</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># type: int</span>
+                <span class="n">found_placeholder</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># type: int</span>
+                <span class="k">for</span> <span class="n">dim_index</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">panel</span><span class="p">[</span><span class="s2">&quot;dim_structure&quot;</span><span class="p">]):</span>
+                    <span class="k">if</span> <span class="n">entry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                            <span class="s2">&quot;Dimension </span><span class="si">{}</span><span class="s2"> for panel </span><span class="si">{}</span><span class="s2"> is undefined.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                <span class="n">dim_index</span><span class="p">,</span> <span class="n">panel_name</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">entry</span> <span class="o">==</span> <span class="s2">&quot;ss&quot;</span><span class="p">:</span>
+                        <span class="n">found_ss</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">elif</span> <span class="n">entry</span> <span class="o">==</span> <span class="s2">&quot;fs&quot;</span><span class="p">:</span>
+                        <span class="n">found_fs</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">elif</span> <span class="n">entry</span> <span class="o">==</span> <span class="s2">&quot;%&quot;</span><span class="p">:</span>
+                        <span class="n">found_placeholder</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">found_ss</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="s2">&quot;Exactly one slow scan dim coordinate is needed (found </span><span class="si">{}</span><span class="s2"> for &quot;</span>
+                        <span class="s2">&quot;panel </span><span class="si">{}</span><span class="s2">).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">found_ss</span><span class="p">,</span> <span class="n">panel_name</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">found_fs</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="s2">&quot;Exactly one fast scan dim coordinate is needed (found </span><span class="si">{}</span><span class="s2"> for &quot;</span>
+                        <span class="s2">&quot;panel </span><span class="si">{}</span><span class="s2">).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">found_fs</span><span class="p">,</span> <span class="n">panel_name</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">found_placeholder</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="s2">&quot;Only one placeholder dim coordinate is allowed. Maximum one &quot;</span>
+                        <span class="s2">&quot;placeholder dim coordinate is allowed &quot;</span>
+                        <span class="s2">&quot;(found </span><span class="si">{}</span><span class="s2"> for panel </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">found_placeholder</span><span class="p">,</span> <span class="n">panel_name</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">dim_length</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">dim_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">panel</span><span class="p">[</span><span class="s2">&quot;dim_structure&quot;</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="n">dim_length</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">panel</span><span class="p">[</span><span class="s2">&quot;dim_structure&quot;</span><span class="p">]):</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="s2">&quot;Number of dim coordinates must be the same for all panels.&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">dim_length</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="s2">&quot;Number of dim coordinates must be at least &quot;</span> <span class="s2">&quot;two.&quot;</span>
+                    <span class="p">)</span>
+            <span class="k">for</span> <span class="n">panel_name</span><span class="p">,</span> <span class="n">panel</span> <span class="ow">in</span> <span class="n">viewitems</span><span class="p">(</span><span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;orig_min_fs&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="s2">&quot;Please specify the minimum fs coordinate for panel </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">panel_name</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;orig_max_fs&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="s2">&quot;Please specify the maximum fs coordinate for panel </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">panel_name</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;orig_min_ss&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="s2">&quot;Please specify the minimum ss coordinate for panel </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">panel_name</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;orig_max_ss&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="s2">&quot;Please specify the maximum ss coordinate for panel </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">panel_name</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;cnx&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="s2">&quot;Please specify the corner X coordinate for panel </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">panel_name</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;clen&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;clen_from&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="s2">&quot;Please specify the camera length for panel </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">panel_name</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;res&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="s2">&quot;Please specify the resolution or panel </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">panel_name</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;adu_per_eV&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;adu_per_photon&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="s2">&quot;Please specify either adu_per_eV or adu_per_photon for panel &quot;</span>
+                        <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">panel_name</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;clen_for_centering&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;rail_x&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="s2">&quot;You must specify clen_for_centering if you specify the rail &quot;</span>
+                        <span class="s2">&quot;direction (panel </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">panel_name</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;rail_x&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;rail_x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+                    <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;rail_y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+                    <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;rail_z&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="k">if</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;clen_for_centering&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;clen_for_centering&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;orig_max_fs&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;orig_min_fs&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;orig_max_ss&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;orig_min_ss&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">for</span> <span class="n">bad_region_name</span><span class="p">,</span> <span class="n">bad_region</span> <span class="ow">in</span> <span class="n">viewitems</span><span class="p">(</span><span class="n">detector</span><span class="p">[</span><span class="s2">&quot;bad&quot;</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">bad_region</span><span class="p">[</span><span class="s2">&quot;is_fsss&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">99</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="s2">&quot;Please specify the coordinate ranges for bad &quot;</span>
+                        <span class="s2">&quot;region </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bad_region_name</span><span class="p">)</span>
+                    <span class="p">)</span>
+            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;rigid_groups&quot;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;rigid_groups&quot;</span><span class="p">][</span><span class="n">group</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]:</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                            <span class="s2">&quot;Cannot add panel to rigid_group. Panel not &quot;</span>
+                            <span class="s2">&quot;found: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                        <span class="p">)</span>
+            <span class="k">for</span> <span class="n">group_collection</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;rigid_group_collections&quot;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;rigid_group_collections&quot;</span><span class="p">][</span><span class="n">group_collection</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;rigid_groups&quot;</span><span class="p">]:</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                            <span class="s2">&quot;Cannot add rigid_group to collection. Rigid group not &quot;</span>
+                            <span class="s2">&quot;found: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                        <span class="p">)</span>
+            <span class="k">for</span> <span class="n">panel</span> <span class="ow">in</span> <span class="n">detector</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">d__</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;fsx&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;ssy&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;ssx&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;fsy&quot;</span><span class="p">]</span>
+                <span class="p">)</span>  <span class="c1"># type: float</span>
+                <span class="k">if</span> <span class="n">d__</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Panel </span><span class="si">{}</span><span class="s2"> transformation is singular.&quot;</span><span class="p">)</span>
+                <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;xfs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;ssy&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">d__</span>
+                <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;yfs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;ssx&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">d__</span>
+                <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;xss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;fsy&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">d__</span>
+                <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;yss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">panel</span><span class="p">[</span><span class="s2">&quot;fsx&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">d__</span>
+            <span class="n">_find_min_max_d</span><span class="p">(</span><span class="n">detector</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span>
+            <span class="p">:</span><span class="mi">2</span>
+        <span class="p">]</span>  <span class="c1"># type: Tuple[Union[Type[BaseException], None], Union[BaseException, None]]</span>
+        <span class="n">raise_from</span><span class="p">(</span>
+            <span class="n">exc</span><span class="o">=</span><span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;The following error occurred while reading the </span><span class="si">{0}</span><span class="s2"> geometry&quot;</span>
+                <span class="s2">&quot;file </span><span class="si">{1}</span><span class="s2">: </span><span class="si">{2}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">filename</span><span class="p">,</span> <span class="n">exc_type</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                <span class="p">)</span>
+            <span class="p">),</span>
+            <span class="n">cause</span><span class="o">=</span><span class="n">exc</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">detector</span><span class="p">,</span> <span class="n">beam</span><span class="p">,</span> <span class="n">hdf5_peak_path</span></div>
 </pre></div>
 
           </div>

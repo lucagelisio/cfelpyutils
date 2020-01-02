@@ -8,6 +8,7 @@ The cfelpyutils Package
 
 .. toctree::
 
+   calibration_utils <cfelpyutils.calibration_utils>
    crystfel_utils <cfelpyutils.crystfel_utils>
    geometry_utils <cfelpyutils.geometry_utils>
-   named_tuples <cfelpyutils.named_tuples>
+   peakfinding_utils <cfelpyutils.peakfinding_utils>

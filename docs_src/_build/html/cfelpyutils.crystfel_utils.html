@@ -17,7 +17,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="The geometry_utils Module" href="cfelpyutils.geometry_utils.html" />
-    <link rel="prev" title="The cfelpyutils Package" href="cfelpyutils.html" />
+    <link rel="prev" title="The calibration_utils Module" href="cfelpyutils.calibration_utils.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -37,33 +37,179 @@
   <div class="section" id="module-cfelpyutils.crystfel_utils">
 <span id="the-crystfel-utils-module"></span><h1>The crystfel_utils Module<a class="headerlink" href="#module-cfelpyutils.crystfel_utils" title="Permalink to this headline">¶</a></h1>
 <p>CrystFEL utilities.</p>
-<p>This module contains Python reimplementations of some functions from the <a class="reference external" href="http://www.desy.de/~twhite/crystfel">CrystFEL</a> software package.</p>
+<p>This module contains Python re-implementations of some functions from the <a class="reference external" href="http://www.desy.de/~twhite/crystfel">CrystFEL</a> software package.</p>
 <dl class="function">
 <dt id="cfelpyutils.crystfel_utils.load_crystfel_geometry">
-<code class="descname">load_crystfel_geometry</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cfelpyutils/crystfel_utils.html#load_crystfel_geometry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cfelpyutils.crystfel_utils.load_crystfel_geometry" title="Permalink to this definition">¶</a></dt>
+<code class="descname">load_crystfel_geometry</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.crystfel_utils.load_crystfel_geometry" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads a CrystFEL geometry file.</p>
-<p>This function is a reimplementation of the get_detector_geometry_2 function from
-CrystFEL. It reads information from a CrystFEL geometry file.</p>
-<p>For a full documentation of the CrystFEL geometry format, see the relevant <a class="reference external" href="http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html">man
-page</a>.</p>
-<p>The function returns a dictionary with the geometry information.</p>
-<ul class="simple">
-<li>The CrystFEL geometry file uses a key/value language. The keys in the returned
-dictionary match the keys in the geometry file.</li>
-<li>The dictionary values store the corresponding values.</li>
-<li>The code of this function is currently synchronized with the code of the function
-‘get_detector_geometry_2’ in CrystFEL at commit 41a8fa9819010.</li>
-</ul>
+<p>This function is a re-implementation of the get_detector_geometry_2 function from
+CrystFEL. It reads information from a CrystFEL geometry file, which uses a
+key/value language, fully documented in the relevant
+<a class="reference external" href="http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html">man page</a>.
+This function returns objects whose content matches CrystFEL’s internal
+representation of the information in the file (see the libcrystfel/src/detector.h
+and the libcrystfel/src/image.c files from CrystFEL’s source code for more
+information).</p>
+<p>The code of this function is currently synchronized with the code of the function
+‘get_detector_geometry_2’ in CrystFEL at commit cff9159b4bc6.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) – the absolute or relative path to a CrystFEL geometry file.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a dictionary with the geometry information loaded from the
-file.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a tuple with the information
+loaded from the file.<p>The first entry in the tuple is a dictionary storing information strictly
+related to the detector geometry. The following is a brief description of the
+key/value pairs in the dictionary.</p>
+<p><strong>Detector-related key/pairs</strong></p>
+<blockquote>
+<div><strong>panels</strong> the panels in the detector. The value corresponding to this key
+is a dictionary containing information about the panels that make up the
+detector. In the dictionary, the keys are the panel names, and the values
+are further dictionaries storing information about the panels.<p><strong>bad</strong>: the bad regions in the detector. The value corresponding to this
+key is a dictionary containing information about the bad regions in the
+detector. In the dictionary, the keys are the bad region names, and the
+values are further dictionaries storing information about the bad regions.</p>
+<p><strong>mask_bad</strong>: the value used in a mask to label a pixel as bad.</p>
+<p><strong>mask_good</strong>: the value used in a mask to label a pixel as good.</p>
+<p><strong>rigid_groups</strong>: the rigid groups of panels in the detector. The value
+corresponding to this key is a dictionary containing information about the
+rigid groups in the detector. In the dictionary, the keys are the names
+of the rigid groups and the values are lists storing the names of the
+panels belonging to eachgroup.</p>
+<p><strong>rigid_groups_collections</strong>: the collections of rigid groups of panels in
+the detector. The value corresponding to this key is a dictionary
+containing information about the rigid group collections in the detector.
+In the dictionary, the keys are the names of the rigid group collections
+and the values are lists storing the names of the rigid groups belonging to
+the collections.</p>
+<p><strong>furthest_out_panel</strong>: the name of the panel where the furthest away pixel
+from the center of the reference system can be found.</p>
+<p><strong>furthest_out_fs</strong>: the fs coordinate, within its panel, of the furthest
+away pixel from the center of the reference system.</p>
+<p><strong>furthest_out_ss</strong>: the ss coordinate, within its panel, of the furthest
+away pixel from the center of the reference system.</p>
+<p><strong>furthest_in_panel</strong>: the name of the panel where the closest pixel to the
+center of the reference system can be found.</p>
+<p><strong>furthest_in_fs</strong>: the fs coordinate, within its panel, of the closest
+pixel to the center of the reference system.</p>
+<p><strong>furthest_in_ss</strong>: the ss coordinate, within its panel, of the closest
+pixel to the center of the reference system.</p>
+</div></blockquote>
+<p><strong>Panel-related key/pairs</strong></p>
+<blockquote>
+<div><strong>cnx</strong>: the x location of the corner of the panel in the reference system.<p><strong>cny</strong>: the y location of the corner of the panel in the reference system.</p>
+<p><strong>clen</strong>: the distance, as reported by the facility, of the sample
+interaction point from the corner of the first pixel in the panel .</p>
+<p><strong>clen_from</strong>: the location of the clen information in a data file, in
+case the information must be extracted from it.</p>
+<p><strong>coffset</strong>: the offset to be applied to the clen value to determine the
+real distance of the panel from the interaction point.</p>
+<p><strong>mask</strong>: the location of the mask data for the panel in a data file.</p>
+<p><strong>mask_file</strong>: the data file in which the mask data for the panel can be
+found.</p>
+<p><strong>satmap</strong>: the location of the per-pixel saturation map for the panel in a
+data file.</p>
+<p><strong>satmap_file</strong>: the data file in which the per-pixel saturation map for
+the panel can be found.</p>
+<p><strong>res</strong>: the resolution of the panel in pixels per meter.</p>
+<p><strong>badrow</strong>: the readout direction for the panel, for filtering out clusters
+of peaks. The value corresponding to this key is either ‘x’ or ‘y’.</p>
+<p><strong>no_index</strong>: wether the panel should be considered entirely bad. The panel
+will be considered bad if the value corresponding to this key is non-zero.</p>
+<p><strong>adu_per_photon</strong>: the number of detector intensity units per photon for
+the panel.</p>
+<p><strong>max_adu</strong>: the detector intensity unit value above which a pixel of the
+panel should be considered unreliable.</p>
+<p><strong>data</strong>: the location, in a data file, of the data block where the panel
+data is stored.</p>
+<p><strong>adu_per_eV</strong>: the number of detector intensity units per eV of photon
+energy for the panel.</p>
+<p><strong>dim_structure</strong>: a description of the structure of the data block for the
+panel. The value corresponding to this key is a list of strings describing
+the meaning of each axis in the data block. See the
+<a class="reference external" href="http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html">crystfel_geometry</a> man
+page for a detailed explanation.</p>
+<p><strong>fsx</strong>: the fs-&gt;x component of the matrix transforming pixel indexes to
+detector reference system coordinates.</p>
+<p><strong>fsy</strong>: the fs-&gt;y component of the matrix transforming pixel indexes to
+detector reference system coordinates.</p>
+<p><strong>fsz</strong>: the fs-&gt;z component of the matrix transforming pixel indexes to
+detector reference system coordinates.</p>
+<p><strong>ssx</strong>: the ss-&gt;x component of the matrix transforming pixel indexes to
+detector reference system coordinates.</p>
+<p><strong>ssy</strong>: the ss-&gt;y component of the matrix transforming pixel indexes to
+detector reference system coordinates.</p>
+<p><strong>ssz</strong>: the ss-&gt;z component of the matrix transforming pixel indexes to
+detector reference system coordinates.</p>
+<p><strong>rail_x</strong>: the x component, with respect to the reference system, of the
+direction of the rail along which the detector can be moved.</p>
+<p><strong>rail_y</strong>: the y component, with respect to the reference system, of the
+direction of the rail along which the detector can be moved.</p>
+<p><strong>rail_z</strong>: the z component, with respect to the reference system, of the
+direction of the rail along which the detector can be moved.</p>
+<p><strong>clen_for_centering</strong>: the value of clen at which the beam hits the
+detector at the origin of the reference system.</p>
+<p><strong>xfs</strong>: the x-&gt;fs component of the matrix transforming detector reference
+system coordinates to pixel indexes.</p>
+<p><strong>yfs</strong>: the y-&gt;fs component of the matrix transforming detector reference
+system coordinates to pixel indexes.</p>
+<p><strong>xss</strong>: the x-&gt;ss component of the matrix transforming detector reference
+system coordinates to pixel indexes.</p>
+<p><strong>yss</strong>: the y-&gt;ss component of the matrix transforming detector reference
+system coordinates to pixel indexes.</p>
+<p><strong>orig_min_fs</strong>: the initial fs index of the location of the panel data in
+the data block where it is stored.</p>
+<p><strong>orig_max_fs</strong>: the final fs index of the location of the panel data in
+the data block where it is stored.</p>
+<p><strong>orig_min_ss</strong>: the initial ss index of the location of the panel data in
+the data block where it is stored.</p>
+<p><strong>orig_max_ss</strong>: the final fs index of the location of the panel data in
+the data block where it is stored.</p>
+<p><strong>w</strong>: the width of the panel in pixels.</p>
+<p><strong>h</strong>: the width of the panel in pixels.</p>
+</div></blockquote>
+<p><strong>Bad region-related key/value pairs</strong></p>
+<blockquote>
+<div><strong>panel</strong>: the name of the panel in which the bad region lies.<p><strong>min_x</strong>: the initial x coordinate of the bad region in the detector
+reference system.</p>
+<p><strong>max_x</strong>: the final x coordinate of the bad region in the detector
+referencesystem.</p>
+<p><strong>min_y</strong>: the initial y coordinate of the bad region in the detector
+reference system.</p>
+<p><strong>max_y</strong>: the final y coordinate of the bad region in the detector
+reference system.</p>
+<p><strong>min_fs</strong>: the initial fs index of the location of the bad region in the
+block where the panel data is stored.</p>
+<p><strong>max_fs</strong>: the final fs index of the location of the bad region in the
+block where the panel data is stored.</p>
+<p><strong>min_ss</strong>: the initial ss index of the location of the bad region in the
+block where the panel data is stored.</p>
+<p><strong>max_ss</strong>: the final ss index of the location of the bad region in the
+block where the panel data is stored.</p>
+<p><strong>is_fsss</strong>: whether the fs,ss definition of the bad region is the valid
+one (as opposed to the x,y-based one). If the value corresponding to this
+key is True, the fs,ss-based definition of the bad region should be
+considered the valid one. Otherwise, the definition in x,y coordinates must
+be honored.</p>
+</div></blockquote>
+<p>The second entry in the tuple is a dictionary storing information related to
+the beam properties. The following is a brief description of the key/value
+pairs in the dictionary.</p>
+<blockquote>
+<div><strong>photon_energy</strong>: the photon energy of the beam in eV.<p><strong>photon_energy_from</strong>: the location of the photon energy information in a
+data file, in case the information must be extracted from it.</p>
+<p><strong>photon_energy_scale</strong>: the scaling factor to be applied to the photon
+energy, in case the provided energy value is not in eV.</p>
+</div></blockquote>
+<p>The third entry in the tuple is a string storing the HDF5 path where
+information about detected Bragg peaks can be found in a data file. If the
+CrystFEL geometry file does not provide this information, the value None is
+returned.</p>
+</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Dict[str, Any]</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Tuple[TypeDetector, TypeBeam, Union[str, None]]</td>
 </tr>
 </tbody>
 </table>
@@ -90,9 +236,10 @@ file.</td>
 <h3>Navigation</h3>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="cfelpyutils.html">The cfelpyutils Package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="cfelpyutils.calibration_utils.html">calibration_utils</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">crystfel_utils</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cfelpyutils.geometry_utils.html">geometry_utils</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cfelpyutils.named_tuples.html">named_tuples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cfelpyutils.peakfinding_utils.html">peakfinding_utils</a></li>
 </ul>
 </li>
 </ul>
@@ -102,7 +249,7 @@ file.</td>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
   <li><a href="cfelpyutils.html">The cfelpyutils Package</a><ul>
-      <li>Previous: <a href="cfelpyutils.html" title="previous chapter">The cfelpyutils Package</a></li>
+      <li>Previous: <a href="cfelpyutils.calibration_utils.html" title="previous chapter">The calibration_utils Module</a></li>
       <li>Next: <a href="cfelpyutils.geometry_utils.html" title="next chapter">The geometry_utils Module</a></li>
   </ul></li>
   </ul></li>

@@ -16,9 +16,9 @@
 """
 Calibration utilities.
 
-This module contains classes and functions that are used to calibrate detector data.
-(i.e. corrections for artifacts caused by detector design or operation, not sample- or
-experiment-related).
+This module contains classes and functions that are used to calibrate detector data
+frames (i.e., to apply corrections for artifacts caused by the design and operation of
+the detector, not by any specific experimental condition).
 """
 from __future__ import absolute_import, division, print_function
 
@@ -28,7 +28,9 @@ import h5py  # type: ignore
 import numpy  # type: ignore
 
 
-class Agipd1MCalibration(object):
+class Agipd1MCalibration(
+    object
+):  # pylint: disable=useless-object-inheritance, too-few-public-methods
     """
     See documentation of the '__init__' function.
     """
@@ -38,28 +40,54 @@ class Agipd1MCalibration(object):
         """
         Calibration of the AGIPD 1M detector.
 
-        This algorithm stores the calibration parameters for an AGIPD 1M detector and
+        This class stores the calibration parameters for an AGIPD 1M detector and
         applies the calibration to a detector data frame upon request. Since the the
         full set of correction parameters for the AGIPD 1M detector takes up a lot of
         memory, only the parameters needed to correct frames originating from a subset
-        of cells care loaded. This algorithm will be able to correct only frames that
-        originate from the cells specified in the cellid_list parameter.
+        of cells are loaded and stored. The subset of cells is chosen when the class is
+        instantiated, via the *cellid_list* parameter. It will then be possible to
+        apply the correction only on detector frames originating from the chosen set of
+        cells.
 
         Arguments:
 
             calibration_filename (str): the absolute or relative path to an HDF5 file
-                with the calibration parameters. The HDF5 file must have the
-                following internal structure:
+                with the calibration parameters. The following data blocks should be
+                present in the file:
 
-                * /AnalogOffset
-                * /DigitalGainLevel
-                * /RelativeGain
-                * /DetectorMask
+                - */AnalogOffset*: a data block storing the offset coefficients for all
+                  pixels, cells and gain stages.
 
-                TODO: describe file structure.
+                - */DigitalGainLevel*: a data block storing the information needed to
+                  determine the gain state of each pixel and cell.
 
-            cellid_list (Tuple[int]): list of cells for which the correction parameters
-                should be loaded.
+                - */RelativeGain*: a data block storing the gain coefficients for all
+                  pixels, cells and gain stages.
+
+                - */DetectorMask*: a data block storing a mask that should be applied to
+                  each data frame. The pixels in the mask must have a value of either
+                  0, meaning that the corresponding pixel in the data frame should be
+                  set to 0, or 1, meaning that the value of the corresponding pixel
+                  must be left alone.
+
+                The */AnalogOffset*, */DigitalGainLevel*, */RelativeGain* data blocks
+                must have an internal structure organized according to the following
+                axis layout:
+
+                - *axis 0*: the three gain stages
+
+                - *axis 1*: the cell number
+
+                - *axis 2*: the ss coordinate of the 16 detector modules, seen as one
+                  big surface, stacked from module 0 to 15 along the longest edge,
+                  with the shortest edges touching.
+
+                - *axis 3*: the fs coordinate of the 16 detector modules, seen as one
+                  big surface, stacked from module 0 to 15 along the longest edge
+                  with the shortest edges touching.
+
+            cellid_list (Tuple[int]): the list of cells for which the correction
+                parameters should be loaded and stored.
         """
         self._offset = numpy.ndarray(
             (3, len(cellid_list), 8192, 128), dtype=numpy.int16
@@ -96,8 +124,8 @@ class Agipd1MCalibration(object):
         Arguments:
 
             data_and_calibration_info (Dict[str, Any]: a dictionary containing the data
-                frame to calibrate, and some additional necessary information. In
-                detail:
+                frame to calibrate, and some additional necessary information. The
+                dictionary should contain the following entries:
 
                 * An entry with key 'data', whose value is the detector data frame to
                   calibrate.
@@ -110,8 +138,8 @@ class Agipd1MCalibration(object):
                     contain the information needed to determine the gain stage of the
                     corresponding pixel in the data frame.
 
-                  - A key called 'cell', whose value is the cell, within an event,
-                    from which the frame to calibrate originates.
+                  - A key called 'cell', whose value is the cell number from which the
+                    frame to calibrate originates.
 
         Returns:
 
