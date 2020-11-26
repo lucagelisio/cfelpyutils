@@ -24,11 +24,6 @@ Or, for Python 2:
 
     python2 -m pip install cfelpyutils
 
-It is also available as a package for the [Anaconda](<https://anaconda.org/>) Python
-distribution. It can be installed using the 'conda' command:
-
-    conda install -c ondateam cfelpyutils
-
 The library can also be installed manually by checking out the repository and running:
 
     python setup.py install 
